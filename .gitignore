@@ -3,6 +3,7 @@
 
 docs/
 model/
+log.out
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
