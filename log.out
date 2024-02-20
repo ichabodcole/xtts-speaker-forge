@@ -1,0 +1,10 @@
+Running on local URL:  http://0.0.0.0:5003
+2024-02-19 21:50:38,791 [INFO] HTTP Request: GET http://localhost:5003/startup-events "HTTP/1.1 200 OK"
+2024-02-19 21:50:38,817 [INFO] HTTP Request: HEAD http://localhost:5003/ "HTTP/1.1 200 OK"
+
+To create a public link, set `share=True` in `launch()`.
+2024-02-19 21:50:38,881 [INFO] HTTP Request: GET https://checkip.amazonaws.com/ "HTTP/1.1 200 "
+2024-02-19 21:50:39,000 [INFO] HTTP Request: GET https://api.gradio.app/pkg-version "HTTP/1.1 200 OK"
+2024-02-19 21:50:39,036 [INFO] HTTP Request: GET https://checkip.amazonaws.com/ "HTTP/1.1 200 "
+2024-02-19 21:50:39,438 [INFO] HTTP Request: POST https://api.gradio.app/gradio-initiated-analytics/ "HTTP/1.1 200 OK"
+2024-02-19 21:50:39,558 [INFO] HTTP Request: POST https://api.gradio.app/gradio-launched-telemetry/ "HTTP/1.1 200 OK"
