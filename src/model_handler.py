@@ -4,10 +4,18 @@ from TTS.tts.models.xtts import Xtts
 import tempfile
 import torchaudio
 
+from utils.utils import is_valid_file_list
+
 
 class ModelHandler:
-    def __init__(self, checkpoint_dir, vocab_file, config_file):
+    def __init__(self):
         self.model = None
+
+    def set_file_paths(self, checkpoint_dir, vocab_file, config_file):
+        if not is_valid_file_list([checkpoint_dir, vocab_file, config_file]):
+            raise FileExistsError(
+                "One or more files are invalid or do not exist !!")
+
         self.checkpoint_dir = checkpoint_dir
         self.vocab_file = vocab_file
         self.config_file = config_file
@@ -20,7 +28,8 @@ class ModelHandler:
         self.clear_gpu_cache()
 
         if not self.checkpoint_dir or not self.config_file or not self.vocab_file:
-            return "You need to run the previous steps or manually set the `XTTS checkpoint path`, `XTTS config path`, and `XTTS vocab path` fields !!"
+            raise FileExistsError(
+                "You need to run the previous steps or manually set the `XTTS checkpoint path`, `XTTS config path`, and `XTTS vocab path` fields !!")
 
         config = XttsConfig()
         config.load_json(self.config_file)

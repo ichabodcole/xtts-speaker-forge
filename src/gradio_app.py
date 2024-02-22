@@ -4,18 +4,17 @@ import sys
 import gradio as gr
 from model_handler import ModelHandler
 from speakers_handler import SpeakersHandler
-from speaker_forge_explore import SpeakerForgeExplore
-from speaker_forge_create import SpeakerForgeCreate
 import pathlib
 import json
-import random
+from create_ui import CreateUI
+from explore_ui import ExploreUI
+from setup_ui import SetupUI
+from mix_ui import MixUI
 
-XTTS_MODEL = None
 
 src_dir = pathlib.Path(__file__).parent.resolve()
 config_file_name = "app_config.json"
 config_file_path = src_dir / config_file_name
-
 
 print(f"src_dir: {config_file_path}")
 
@@ -27,159 +26,12 @@ checkpoint_dir = str(pathlib.Path(src_dir, '../model'))
 vocab_file = str(pathlib.Path(src_dir, '../model/vocab.json'))
 config_file = str(pathlib.Path(src_dir, '../model/config.json'))
 
-speakers_handler = SpeakersHandler(speakers_file=speaker_file)
-model_handler = ModelHandler(checkpoint_dir, vocab_file, config_file)
-sf_explore = SpeakerForgeExplore(speakers_handler, model_handler)
-sf_create = SpeakerForgeCreate(speakers_handler, model_handler)
-
-# define a logger to redirect
-default_text_list = [
-    "All I want to do is zoom-a-zoom-zoom-zoom and a boom-boom, JUST SHAKE YA RUMP!",
-    "Please do not let this extensive clarification distract you from the fact that in 1998, The Undertaker threw Mankind off Hell In A Cell, and plummeted 16 ft through an announcer's table.",
-    "Blinded by the light, Rolled up like a douche, in the corner in the right.",
-    "I personally believe that U.S. Americans are unable to do so because, uh, some … people out there in our nation don’t have maps and, uh,...",
-    "Once you can accept the universe as matter expanding into nothing that is something, wearing stripes with plaid comes easy.",
-    "We live in a society exquisitely dependent on science and technology, in which hardly anyone knows anything about science and technology.",
-    "It is better to keep your mouth closed and let people think you are a fool than to open it and remove all doubt."
-]
-
-
-def initExploreUI():
-    gr.Markdown("_Explore the contents of the XTTS speakers file._")
-
-    load_speakers_btn = gr.Button("Load Speakers")
-
-    with gr.Group(visible=False) as speaker_group:
-        speaker_select = gr.Dropdown(
-            label="Speaker",
-            choices=[]
-        )
-
-        # Get a random item from the default_text_list
-        text = random.choice(default_text_list)
-
-        speech_text_box = gr.Textbox(
-            text,
-            label="Speech Text",
-            placeholder="Type something...",
-            lines=3,
-            interactive=True
-        )
-
-        generate_speech_btn = gr.Button(
-            "Generate Speech")
-
-    with gr.Group(visible=False) as processing_group:
-        processing_text = gr.Markdown(
-            value="## _Doing the maths n' stuff, please be patient..._"
-        )
-
-        audio_player = gr.Audio(
-            value=None, format="wav")
-
-    # Setup the button click events
-    load_speakers_btn.click(
-        sf_explore.load_speaker_data,
-        inputs=None,
-        outputs=[speaker_group, speaker_select]
-    )
-
-    generate_speech_btn.click(
-        sf_explore.generate_speech,
-        inputs=[speaker_select, speech_text_box],
-        outputs=[
-            processing_group,
-            processing_text,
-            generate_speech_btn,
-            audio_player
-        ]
-    ).then(
-        sf_explore.do_inference,
-        inputs=[speaker_select, speech_text_box],
-        outputs=[processing_text, generate_speech_btn, audio_player]
-    )
-
-
-def initCreateUI():
-    gr.Markdown("_Create a new speaker from one or more reference wavs/mp3s._")
-
-    with gr.Group():
-        file_uploader = gr.File(
-            label="Upload Speaker wavs or mp3s",
-            type="filepath",
-            file_count="multiple",
-            file_types=["wav", "mp3"],
-            interactive=True
-        )
-
-        extract_btn = gr.Button("Create Speaker Embedding")
-
-    with gr.Group(visible=False) as generate_group:
-        # Get a random item from the default_text_list
-        text = random.choice(default_text_list)
-
-        speech_text_box = gr.Textbox(
-            text,
-            label="Speech Text",
-            placeholder="Type something...",
-            lines=3,
-            interactive=True
-        )
-
-        preview_speaker_btn = gr.Button("Preview Speaker Voice")
-
-    with gr.Group(visible=False) as speaker_audio_group:
-        processing_text = gr.Markdown(
-            value="## _Doing the maths n' stuff, please be patient..._"
-        )
-
-        speaker_audio_player = gr.Audio(
-            value=None,
-            format="wav",
-            interactive=False,
-            show_download_button=True
-        )
-
-    with gr.Group(visible=False) as save_group:
-        speaker_name = gr.Textbox(
-            label="Speaker Name",
-            placeholder="Enter a unique speaker name and save it to the speaker file.",
-            interactive=True
-        )
-
-        save_speaker_btn = gr.Button("Save Speaker")
-
-        speaker_saved_message = gr.Markdown(
-            value="### _Speaker saved successfully!_",
-            visible=False
-        )
-
-    # Extracts the speaker embedding from the uploaded audio, then displays the audio player group, but hiding the audio player
-    extract_btn.click(
-        sf_create.get_speaker_embedding,
-        inputs=[file_uploader],
-        outputs=[generate_group, speaker_audio_player]
-    )
-
-    # Generates the speech from the speaker embedding and the text,
-    preview_speaker_btn.click(
-        sf_create.generate_speech,
-        inputs=[speaker_name],
-        outputs=[speaker_audio_group, processing_text, save_group]
-    ).then(
-        sf_create.do_inference, inputs=[speech_text_box], outputs=[
-            processing_text,
-            preview_speaker_btn,
-            speaker_audio_player,
-            save_group
-        ]
-    )
-
-    save_speaker_btn.click(
-        sf_create.save_speaker,
-        inputs=[speaker_name],
-        outputs=speaker_saved_message
-    )
+speakers_handler = SpeakersHandler()
+model_handler = ModelHandler()
+setup_ui = SetupUI(speakers_handler, model_handler)
+explore_ui = ExploreUI(speakers_handler, model_handler)
+create_ui = CreateUI(speakers_handler, model_handler)
+mix_ui = MixUI(speakers_handler, model_handler)
 
 
 class Logger:
@@ -258,36 +110,75 @@ if __name__ == "__main__":
     #header-image { text-align: center; }
     #header-image button { display: flex; justify-content: center; pointer-events: none; }
     #header-image img { max-width: 876px }
-    #tab-create-button,
-    #tab-explore-button,
-    #tab-mix-button,
-    #tab-export-button,
-    #tab-changelog-button { font-size: 1.5em; }
+    .tab-nav button { font-size: 1.5em; }
+    .tab-nav button.selected { --body-text-color: rgb(103 232 249); }
+    .processing-text { padding-left: 10px; }
+    .section-description { 
+        --body-text-color: rgb(103 232 249);
+        font-size: 1.1em; 
+        margin-top: 5px; 
+        margin-left: 5px;
+    }
     """
 
     with gr.Blocks(css=css) as app:
+        # https://i.postimg.cc/rpbTgB2y/b7-Vvp-ETJq-S.gif
+        # http://www.gigaglitters.com/created/b7VvpETJqS.gif
         gr.Image(value="http://www.gigaglitters.com/created/b7VvpETJqS.gif", elem_id="header-image",
                  image_mode="RGBA", show_download_button=False, container=False, interactive=False)
         gr.Markdown("_v1.0.0_")
 
-        with gr.Tab("Explore", elem_id="tab-explore"):
+        with gr.Tab("Setup", elem_id="tab-setup"):
             with gr.Column():
-                initExploreUI()
+                setup_data = setup_ui.createUI(
+                    checkpoint_dir,
+                    vocab_file,
+                    config_file,
+                    speaker_file
+                )
 
-        with gr.Tab("Create", elem_id="tab-create"):
+        with gr.Tab("Explore", elem_id="tab-explore", interactive=False) as explore_tab:
             with gr.Column():
-                initCreateUI()
+                explore_ui.createIU()
 
-        with gr.Tab("Mix", elem_id="tab-mix"):
+        with gr.Tab("Create", elem_id="tab-create", interactive=False) as create_tab:
             with gr.Column():
-                gr.Markdown("## Mix")
+                create_ui.createUI()
 
-        with gr.Tab("Export", elem_id="tab-export"):
+        with gr.Tab("Mix", elem_id="tab-mix", interactive=False) as mix_tab:
             with gr.Column():
-                gr.Markdown("## Export")
+                mix_ui.createUI()
+                pass
+
+        with gr.Tab("Export", elem_id="tab-export", interactive=False) as export_tab:
+            with gr.Column():
+                # initExportUI()
+                pass
+
         with gr.Tab("Changelog", elem_id="tab-changelog"):
             with gr.Column():
-                gr.Markdown("## Changelog")
+                gr.Markdown(
+                    value="_Read the exciting development updates!_",
+                    elem_classes=["section-description"]
+                )
+
+        # TODO: Look for a cleaner way to do this
+        setup_data['load_btn'].click(
+            setup_ui.validate_paths_and_load_model,
+            inputs=[
+                setup_data["checkpoint_dir"],
+                setup_data["vocab_file"],
+                setup_data["config_file"],
+                setup_data["speaker_file"]
+            ],
+            outputs=[
+                setup_data["message"],
+                explore_tab,
+                create_tab,
+                mix_tab,
+                export_tab
+            ]
+        )
 
     app.launch(
         share=False,
