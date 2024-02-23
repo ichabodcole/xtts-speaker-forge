@@ -266,8 +266,6 @@ class MixUI:
 
     def create_speaker_from_mix(self):
 
-        print("mix from speaker_weights", self.speaker_weights)
-
         self.speaker_embedding = self.speakers_handler.create_speaker_embedding_from_mix(
             self.speaker_weights)
 

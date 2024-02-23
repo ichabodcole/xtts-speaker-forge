@@ -22,22 +22,22 @@ class SetupUI:
         checkpoint_dir_textbox = gr.Textbox(
             value=checkpoint_dir,
             label="Checkpoint Directory",
-            interactive=True
+            interactive=False
         )
         vocab_file_textbox = gr.Textbox(
             value=vocab_file,
             label="Vocab File Path",
-            interactive=True
+            interactive=False
         )
         config_file_textbox = gr.Textbox(
             value=config_file,
             label="Config File Path",
-            interactive=True
+            interactive=False
         )
         speaker_file_textbox = gr.Textbox(
             value=speaker_file,
             label="Speaker File Path",
-            interactive=True
+            interactive=False
         )
 
         load_model_btn = gr.Button("Validate Files and Load XTTS model")

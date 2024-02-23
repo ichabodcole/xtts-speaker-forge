@@ -1,3 +1,4 @@
+import os
 import logging
 import argparse
 import sys
@@ -11,20 +12,23 @@ from explore_ui import ExploreUI
 from setup_ui import SetupUI
 from mix_ui import MixUI
 
-
 src_dir = pathlib.Path(__file__).parent.resolve()
 config_file_name = "app_config.json"
 config_file_path = src_dir / config_file_name
 
-print(f"src_dir: {config_file_path}")
+checkpoint_dir = os.environ.get("CHECKPOINT_DIR")
+config_file = os.environ.get("CONFIG_PATH")
+vocab_file = os.environ.get("VOCAB_PATH")
+speaker_file = os.environ.get("SPEAKERS_XTTS_PATH")
 
-with open(config_file_path, "rb") as f:
-    app_config = json.load(f)
-
-speaker_file = str(pathlib.Path(src_dir, '../model/speakers_xtts.pth'))
-checkpoint_dir = str(pathlib.Path(src_dir, '../model'))
-vocab_file = str(pathlib.Path(src_dir, '../model/vocab.json'))
-config_file = str(pathlib.Path(src_dir, '../model/config.json'))
+if not checkpoint_dir:
+    raise ValueError("CHECKPOINT_DIR environment variable not set")
+if not config_file:
+    raise ValueError("CONFIG_PATH environment variable not set")
+if not vocab_file:
+    raise ValueError("VOCAB_PATH environment variable not set")
+if not speaker_file:
+    raise ValueError("SPEAKER_PATH environment variable not set")
 
 speakers_handler = SpeakersHandler()
 speakers_handler.set_speaker_file(speaker_file)

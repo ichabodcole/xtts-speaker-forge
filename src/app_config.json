@@ -1,6 +1,0 @@
-{
-    "tokenizer_url": "https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/main/vocab.json",
-    "model_url": "https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/main/model.pth",
-    "config_url": "https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/main/config.json",
-    "speakers_xtts_url": "https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/main/speakers_xtts.pth"
-}
