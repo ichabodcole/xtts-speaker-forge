@@ -96,6 +96,13 @@ if __name__ == "__main__":
         default=5003,
     )
 
+    parser.add_argument(
+        "--share",
+        type=bool,
+        help="Share the gradio demo. Default: False",
+        default=False,
+    )
+
     # parser.add_argument(
     #     "--out_path",
     #     type=str,
@@ -187,7 +194,7 @@ if __name__ == "__main__":
         )
 
     app.launch(
-        share=False,
+        share=args.share,
         debug=False,
         server_port=args.port,
         server_name="0.0.0.0"
