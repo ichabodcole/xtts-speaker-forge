@@ -51,7 +51,7 @@ class CreateUI:
 
             speech_textbox = gr.Textbox(
                 input_text,
-                label="Speech Text",
+                label="What should I say?",
                 placeholder="Type something...",
                 lines=3,
                 interactive=True

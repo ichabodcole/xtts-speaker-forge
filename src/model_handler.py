@@ -1,9 +1,10 @@
+import os
+import time
 import torch
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 import tempfile
 import torchaudio
-
 from utils.utils import is_valid_file_list
 
 
@@ -59,7 +60,7 @@ class ModelHandler:
 
         return gpt_cond_latent, speaker_embedding
 
-    def run_inference(self, lang, tts_text, gpt_cond_latent, speaker_embedding):
+    def run_inference(self, lang, tts_text, gpt_cond_latent, speaker_embedding, file_name=None):
         if self.model is None:
             print("Loading model... Be Patient.")
             self.load_model()
@@ -76,10 +77,26 @@ class ModelHandler:
             top_p=self.model.config.top_p,
         )
 
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as fp:
+        # if file_name:
+        #     with tempfile.TemporaryDirectory() as temp_dir:
+        #         gm_time = time.gmtime()
+        #         print("gm_time", gm_time)
+        #         out_path = os.path.join(
+        #             temp_dir, f"{file_name}.wav")
+        #         out["wav"] = torch.tensor(out["wav"]).unsqueeze(0)
+        #         torchaudio.save(out_path, out["wav"], 24000)
+        #         # Do something with out_path here, e.g., move it to a permanent location
+        #         # Note: The temp_dir and its contents are deleted once this block ends,
+        #         # so you might want to copy or move the file to another location if you
+        #         # want to keep it.
+        # else:
+        # Use a temporary file which will be automatically deleted unless delete=False
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+            out_path = temp_file.name
             out["wav"] = torch.tensor(out["wav"]).unsqueeze(0)
-            out_path = fp.name
             torchaudio.save(out_path, out["wav"], 24000)
+            # The temp_file is not deleted automatically because delete=False
+            # You can access it using out_path
 
         return out_path
 

@@ -24,3 +24,11 @@ def get_random_speech_text():
 
 def format_md_message(message):
     return f"### _{message}_"
+
+
+def find_in_tuple_list(item, tuple_list):
+    for tuple_item in tuple_list:
+        if item in tuple_item:
+            return tuple_item
+
+    return None

@@ -27,6 +27,8 @@ vocab_file = str(pathlib.Path(src_dir, '../model/vocab.json'))
 config_file = str(pathlib.Path(src_dir, '../model/config.json'))
 
 speakers_handler = SpeakersHandler()
+speakers_handler.set_speaker_file(speaker_file)
+
 model_handler = ModelHandler()
 setup_ui = SetupUI(speakers_handler, model_handler)
 explore_ui = ExploreUI(speakers_handler, model_handler)
