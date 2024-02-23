@@ -1,3 +1,7 @@
 #!/bin/bash
 
-python src/gradio_app.py --port 8080 --share True
+SCRIPT_DIR=$(dirname "$0")
+
+cd "$SCRIPT_DIR"
+
+python src/gradio_app.py --share True
