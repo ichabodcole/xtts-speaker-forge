@@ -6,14 +6,18 @@ from model_handler import ModelHandler
 from speakers_handler import SpeakersHandler
 from typing import List
 from random import choice, choices, randrange
-from constants import speech_input_defaults
-from types_module import EmbeddingPair, SliderList, SpeakerEmbedding, SpeakerNameList
+from constants.ui_text import speech_input_defaults
+from types_module import EmbeddingPair, SliderList, SpeakerEmbedding, SpeakerNameList, SpeakerWeightsList
+
+SLIDER_MAX = 2
+SLIDER_MIN = 0
+SLIDER_STEP = 0.1
 
 
 class MixUI:
     speaker_name_list: SpeakerNameList = []
     speaker_control_list: SliderList = []
-    speaker_weights = []
+    speaker_weights: SpeakerWeightsList = []
     speaker_embedding: SpeakerEmbedding = None
     is_spicy = False
 
@@ -47,9 +51,9 @@ class MixUI:
                 for speaker_name in self.speaker_name_list:
                     speaker_control = gr.Slider(
                         label=speaker_name,
-                        minimum=0,
-                        maximum=10,
-                        step=0.1,
+                        minimum=SLIDER_MIN,
+                        maximum=SLIDER_MAX,
+                        step=SLIDER_STEP,
                         value=1,
                         interactive=True,
                         visible=False,
@@ -66,7 +70,9 @@ class MixUI:
 
                     self.speaker_control_list.append(speaker_control)
 
-            create_speaker_btn = gr.Button("Create Franken-Speaker™")
+            with gr.Row():
+                randomize_speaker_weights_btn = gr.Button("Randomize Weights")
+                reset_speaker_weights_btn = gr.Button("Reset Weights")
 
             # speaker_control_message = gr.Markdown(
             #     value="### _Creating Franken-Speaker™... (queue ominous thunder and lighting strikes)_",
@@ -115,6 +121,13 @@ class MixUI:
         # )
 
         # Event Handlers
+        for speaker_control in self.speaker_control_list:
+            speaker_control.input(
+                self.reset_audio_player,
+                inputs=[],
+                outputs=speaker_audio_player
+            )
+
         load_speakers_btn.click(
             self.handle_load_speaker_click,
             inputs=[],
@@ -128,9 +141,7 @@ class MixUI:
             self.update_speaker_controls,
             inputs=[speaker_select],
             outputs=self.speaker_control_list
-        )
-
-        speaker_select.change(
+        ).then(
             self.handle_speaker_select_change,
             inputs=[speaker_select],
             outputs=[
@@ -146,22 +157,24 @@ class MixUI:
             outputs=speaker_select
         )
 
-        create_speaker_btn.click(
-            self.handle_create_speaker_click,
-            inputs=[],
-            outputs=[
-                speaker_audio_player,
-                speaker_save_group,
-                speaker_preview_group
-            ]
+        randomize_speaker_weights_btn.click(
+            self.handle_randomize_speaker_weights_click,
+            inputs=[speaker_select],
+            outputs=self.speaker_control_list
         ).then(
-            self.create_speaker_from_mix,
+            self.reset_audio_player,
             inputs=[],
-            outputs=speaker_preview_group
+            outputs=speaker_audio_player
+        )
+
+        reset_speaker_weights_btn.click(
+            self.handle_reset_speaker_weights_click,
+            inputs=[speaker_select],
+            outputs=self.speaker_control_list
         )
 
         generate_speech_btn.click(
-            self.generate_speech_click,
+            self.handle_generate_speech_click,
             inputs=[],
             outputs=[
                 speaker_audio_player,
@@ -192,13 +205,18 @@ class MixUI:
     def update_speaker_controls(self, speaker_select):
         next_list: SliderList = []
 
+        self.speaker_weights = self.filter_speaker_weights(speaker_select)
+
         for speaker_control in self.speaker_control_list:
-            value = round(
-                random.uniform(1, 10), 1
-            ) if self.is_spicy else speaker_control.value or 1
             speaker_name = speaker_control.label
 
             if speaker_name in speaker_select:
+                speaker_weight = self.get_speaker_weight(speaker_name)
+
+                value = self.get_spicy_value() if self.is_spicy else speaker_weight
+
+                self.update_speaker_weights(speaker_name, value)
+
                 slider = gr.Slider(
                     label=speaker_name,
                     visible=True,
@@ -227,16 +245,9 @@ class MixUI:
     def handle_speaker_select_change(self, selected_speakers):
         is_valid_count = len(selected_speakers) > 1
 
-        self.speaker_weights = []
-        for speaker in selected_speakers:
-            self.speaker_weights.append({
-                "speaker": speaker,
-                "weight": 1
-            })
-
         return [
             gr.Group(visible=is_valid_count),
-            gr.Group(visible=False),
+            gr.Group(visible=is_valid_count),
             gr.Group(visible=False)
         ]
 
@@ -247,29 +258,56 @@ class MixUI:
         return gr.Dropdown(value=speakers)
 
     def handle_speaker_slider_change(self, slider_label, slider_value):
+        self.update_speaker_weights(slider_label, slider_value)
 
-        def speaker_filter(speaker_weight):
-            return False if speaker_weight["speaker"] == slider_label else True
-
-        self.speaker_weights = list(
-            filter(speaker_filter, self.speaker_weights))
-
-        self.speaker_weights.append(
-            {"speaker": slider_label, "weight": slider_value})
-
-    def handle_create_speaker_click(self):
-        return [
-            gr.Audio(value=None),
-            gr.Group(visible=False),
-            gr.Group(visible=True)
-        ]
-
-    def create_speaker_from_mix(self):
-
+    def handle_generate_speech_click(self):
         self.speaker_embedding = self.speakers_handler.create_speaker_embedding_from_mix(
             self.speaker_weights)
 
-        return gr.Group(visible=True)
+        return [
+            gr.Audio(value=None),
+            gr.Group(visible=False)
+        ]
+
+    def handle_randomize_speaker_weights_click(self, selected_speakers: SpeakerNameList):
+        next_slider_list: SliderList = []
+        self.randomize_speaker_weights()
+
+        for speaker_control in self.speaker_control_list:
+            speaker_name = speaker_control.label
+
+            if speaker_name in selected_speakers:
+                speaker_weight = self.get_speaker_weight(speaker_name)
+                slider = gr.Slider(
+                    label=speaker_name,
+                    visible=True,
+                    value=speaker_weight
+                )
+            else:
+                slider = gr.Slider(visible=False, value=0)
+
+            next_slider_list.append(slider)
+
+        return next_slider_list
+
+    def handle_reset_speaker_weights_click(self, selected_speakers: SpeakerNameList):
+        next_slider_list: SliderList = []
+
+        for speaker_control in self.speaker_control_list:
+            speaker_name = speaker_control.label
+
+            if speaker_name in selected_speakers:
+                slider = gr.Slider(
+                    label=speaker_name,
+                    visible=True,
+                    value=1
+                )
+            else:
+                slider = gr.Slider(visible=False, value=0)
+
+            next_slider_list.append(slider)
+
+        return next_slider_list
 
     def generate_speech_click(self):
         if (self.speaker_embedding is None):
@@ -277,7 +315,6 @@ class MixUI:
             pass
 
         return [
-            gr.Audio(value=None),
             gr.Group(visible=False)
         ]
 
@@ -290,6 +327,7 @@ class MixUI:
 
     def do_inference(self, speech_input_text):
         wav_file = "https://www2.cs.uic.edu/~i101/SoundFiles/StarWars3.wav"
+        print("speaker_weights", self.speaker_weights)
 
         wav_file = self.model_handler.run_inference(
             'en',
@@ -307,3 +345,34 @@ class MixUI:
         for speaker in self.speaker_weights:
             file_name += f"{speaker['speaker']}_{speaker['weight']}_"
         return file_name
+
+    def get_speaker_weight(self, speaker_name: str) -> float:
+        return next((speaker_weight["weight"] for speaker_weight in self.speaker_weights if speaker_weight["speaker"] == speaker_name), 1.0)
+
+    def filter_speaker_weights(self, speaker_list: SpeakerNameList) -> SpeakerWeightsList:
+        return list(filter(lambda speaker_weight: speaker_weight["speaker"] in speaker_list, self.speaker_weights))
+
+    def update_speaker_weights(self, speaker_name: str, weight: float):
+        # If speaker already exists, update weight
+        for speaker_weight in self.speaker_weights:
+            if speaker_weight["speaker"] == speaker_name:
+                speaker_weight["weight"] = weight
+                return self.speaker_weights
+
+        # Otherwise, add new speaker
+        self.speaker_weights.append(
+            {"speaker": speaker_name, "weight": weight})
+
+        print(self.speaker_weights)
+
+        return self.speaker_weights
+
+    def get_spicy_value(self):
+        return round(random.uniform(max(SLIDER_MIN, 0.1), SLIDER_MAX), 1)
+
+    def randomize_speaker_weights(self):
+        for speaker_weight in self.speaker_weights:
+            speaker_weight["weight"] = self.get_spicy_value()
+
+    def reset_audio_player(self):
+        return gr.Audio(value=None)

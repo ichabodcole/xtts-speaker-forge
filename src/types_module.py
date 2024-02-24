@@ -31,3 +31,5 @@ SliderList = List[gr.Slider]
 SpeakerNameList = List[str]
 
 EmbeddingPair = Tuple[torch.Tensor, torch.Tensor]
+
+EmbeddingPairsList = List[EmbeddingPair]

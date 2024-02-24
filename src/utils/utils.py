@@ -1,7 +1,7 @@
 import os
 import random
 
-from constants import speech_input_defaults
+from constants.ui_text import speech_input_defaults
 # Utils functions
 
 

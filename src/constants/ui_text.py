@@ -1,4 +1,14 @@
-MAX_SPEAKER_CONTROL_COUNT = 150
+speaker_name_textbox_label = "Speaker Name"
+speaker_speech_textbox_label = "Speaker Text"
+save_speaker_btn_label = "Save Speaker"
+speaker_select_label = "Select Speaker"
+speakers_select_label = "Select Speakers"
+load_speakers_btn_label = "Load Speakers"
+generate_speech_btn_label = "Generate Speech"
+remove_speaker_btn_label = "Remove Speaker"
+randomize_speaker_btn_label = "Feeling Spicy?"
+randomize_speaker_weights_btn_label = "Randomize Weights"
+create_speaker_embdding_btn_label = "Create Speaker Embedding"
 
 speech_input_defaults = [
     "All I want to do is zoom-a-zoom-zoom-zoom and a boom-boom, JUST SHAKE YA RUMP!",
