@@ -1,8 +1,10 @@
 import gradio as gr
 from common_ui import validate_file_uploader, validate_text_box
+from components.speaker_preview_component import SpeechPreviewComponent
+from components.textbox_submit_component import TextboxSubmitComponent
 from model_handler import ModelHandler
 from speakers_handler import SpeakersHandler
-from utils.utils import get_random_speech_text
+from utils.utils import format_notification, get_random_speech_text
 
 
 class CreateUI:
@@ -33,73 +35,45 @@ class CreateUI:
                 interactive=False
             )
 
-            file_uploader.change(
-                validate_file_uploader,
-                inputs=[file_uploader],
-                outputs=create_speaker_embedding_btn
-            )
-
         speaker_embedding_text = gr.Markdown(
             value="### _Creating speaker embedding, try counting some sheep..._",
             visible=False,
             elem_classes=["processing-text"]
         )
 
-        with gr.Group(visible=False) as generate_speech_group:
-            # Get a random item from the speech_input_
-            input_text = get_random_speech_text()
+        # SPEAKER PREVIEW COMPONENT
+        (speaker_preview_group,
+         speaker_audio_player,
+         speech_textbox,
+         preview_speaker_btn) = SpeechPreviewComponent()
 
-            speech_textbox = gr.Textbox(
-                input_text,
-                label="What should I say?",
-                placeholder="Type something...",
-                lines=3,
-                interactive=True
-            )
+        speech_textbox.change(
+            validate_text_box,
+            inputs=[speech_textbox],
+            outputs=preview_speaker_btn
+        )
 
-            preview_speaker_btn = gr.Button("Preview Speaker Voice")
-
-            speech_textbox.change(
-                validate_text_box,
-                inputs=[speech_textbox],
-                outputs=preview_speaker_btn
-            )
-
-        with gr.Group(visible=False) as speaker_audio_group:
-            speaker_audio_messages = gr.Markdown(
-                value="### _Calculating the \"Slurp of the Gradients\" (my favorite movie)..._",
-                elem_classes=["processing-text"]
-            )
-
-            speaker_audio_player = gr.Audio(
-                value=None,
-                format="wav",
-                interactive=False,
-                show_download_button=True
-            )
-
-        with gr.Group(visible=False) as save_group:
-            speaker_name_textbox = gr.Textbox(
-                label="Speaker Name",
-                placeholder="Enter a unique speaker name and save it to the speaker file.",
-                interactive=True
-            )
-
-            save_speaker_btn = gr.Button("Save Speaker", interactive=False)
-
-            speaker_name_textbox.change(
-                validate_text_box,
-                inputs=[speaker_name_textbox],
-                outputs=save_speaker_btn
-            )
-
-        # Save group text messages
-        save_group_messages = gr.Markdown(
-            value="### _Speaker saved successfully!_",
-            visible=False
+        # SAVE SPEAKER COMPONENT
+        (speaker_save_group,
+         speaker_name_textbox,
+         save_speaker_btn,
+         save_group_messages) = TextboxSubmitComponent(
+            textbox_label="Speaker Name",
+            button_label="Save Speaker",
+            placeholder="Enter a unique speaker name and save it to the speaker file.",
+            notification_message="Speaker saved successfully!"
         )
 
         # Setup Events
+        file_uploader.change(
+            validate_file_uploader,
+            inputs=[file_uploader],
+            outputs=create_speaker_embedding_btn
+        ).then(
+            self.reset_audio_player,
+            inputs=[],
+            outputs=speaker_audio_player
+        )
 
         # Extracts the speaker embedding from the uploaded audio, then displays the audio player group, but hiding the audio player
         create_speaker_embedding_btn.click(
@@ -107,22 +81,19 @@ class CreateUI:
                 gr.Markdown(visible=True),
                 gr.Button(interactive=False),
                 gr.Group(visible=False),
-                gr.Group(visible=False),
                 gr.Group(visible=False)],
             outputs=[
                 speaker_embedding_text,
                 create_speaker_embedding_btn,
-                generate_speech_group,
-                speaker_audio_group,
-                save_group
+                speaker_preview_group,
+                speaker_save_group
             ],
         ).then(
             self.get_speaker_embedding,
             inputs=[file_uploader],
             outputs=[
                 speaker_embedding_text,
-                generate_speech_group,
-                speaker_audio_player
+                speaker_preview_group
             ]
         )
 
@@ -131,20 +102,18 @@ class CreateUI:
             self.generate_speech,
             inputs=[speaker_name_textbox],
             outputs=[
-                speaker_audio_group,
-                speaker_audio_messages,
-                speaker_audio_player,
+                speaker_preview_group,
                 preview_speaker_btn,
-                save_group
+                speaker_save_group,
+                speaker_audio_player
             ]
         ).then(
             self.do_inference,
             inputs=[speech_textbox],
             outputs=[
-                speaker_audio_messages,
                 preview_speaker_btn,
                 speaker_audio_player,
-                save_group
+                speaker_save_group
             ]
         )
 
@@ -161,29 +130,19 @@ class CreateUI:
         self.gpt_cond_latent = gpt_cond_latent
         self.speaker_embedding = speaker_embedding
 
-        # speaker_embedding_text
-        # generate_group,
-        # speaker_audio_player
         return [
             gr.Markdown(visible=False),
             gr.Group(visible=True),
-            gr.Audio(visible=False)
         ]
 
     def generate_speech(self, speech_text):
         print(f"Generate speech with text: {speech_text}")
 
-        # speaker_audio_group,
-        # speaker_audio_messages,
-        # speaker_audio_player,
-        # preview_speaker_btn,
-        # save_group
         return [
             gr.Group(visible=True),
-            gr.Markdown(visible=True),
-            gr.Audio(visible=False),
             gr.Button(interactive=False),
-            gr.Group(visible=False)
+            gr.Group(visible=False),
+            gr.Audio(value=None)
         ]
 
     def do_inference(self, speech_text):
@@ -197,28 +156,25 @@ class CreateUI:
         wav_file = self.model_handler.run_inference(
             "en", speech_text, self.gpt_cond_latent, self.speaker_embedding)
 
-        # speaker_audio_messages,
-        # preview_speaker_btn,
-        # speaker_audio_player,
-        # save_group
         return [
-            gr.Markdown(visible=False),
             gr.Button(interactive=True),
-            gr.Audio(value=wav_file, visible=True),
+            gr.Audio(value=wav_file),
             gr.Group(visible=True)
         ]
 
     def save_speaker(self, speaker_name):
         if (speaker_name is None):
             return gr.Markdown(
-                value="### _Speaker name is empty! Please enter a unique speaker name._",
+                value=format_notification(
+                    "Speaker name is empty! Please enter a unique speaker name."),
                 visible=True
             )
 
         cur_speaker_names = self.speakers_handler.get_speaker_names()
         if speaker_name in cur_speaker_names:
             return gr.Markdown(
-                value="### _Speak name already exists! Please enter a unique speaker name._",
+                value=format_notification(
+                    "Speak name already exists! Please enter a unique speaker name."),
                 visible=True
             )
 
@@ -227,8 +183,11 @@ class CreateUI:
 
         self.speakers_handler.save_speaker_file()
 
-        # save_group_messages
         return gr.Markdown(
-            value=f"### _Speaker \"{speaker_name}\" added successfully!_",
+            value=format_notification(
+                f"Speaker \"{speaker_name}\" added successfully!"),
             visible=True
         )
+
+    def reset_audio_player(self):
+        return gr.Audio(value=None)

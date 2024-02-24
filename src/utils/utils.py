@@ -22,7 +22,7 @@ def get_random_speech_text():
     return random.choice(speech_input_defaults)
 
 
-def format_md_message(message):
+def format_notification(message: str):
     return f"### _{message}_"
 
 

@@ -1,13 +1,12 @@
 import random
-import time
 import gradio as gr
-from common_ui import validate_file_uploader, validate_text_box
+from common_ui import validate_text_box
+from components.textbox_submit_component import TextboxSubmitComponent
 from model_handler import ModelHandler
+from components.speaker_preview_component import SpeechPreviewComponent
 from speakers_handler import SpeakersHandler
-from typing import List
-from random import choice, choices, randrange
-from constants.ui_text import speech_input_defaults
-from types_module import EmbeddingPair, SliderList, SpeakerEmbedding, SpeakerNameList, SpeakerWeightsList
+from random import choices, randrange
+from types_module import SliderList, SpeakerEmbedding, SpeakerNameList, SpeakerWeightsList
 
 SLIDER_MAX = 2
 SLIDER_MIN = 0
@@ -74,58 +73,28 @@ class MixUI:
                 randomize_speaker_weights_btn = gr.Button("Randomize Weights")
                 reset_speaker_weights_btn = gr.Button("Reset Weights")
 
-            # speaker_control_message = gr.Markdown(
-            #     value="### _Creating Franken-Speaker™... (queue ominous thunder and lighting strikes)_",
-            #     elem_classes=['processing-text'],
-            #     visible=True
-            # )
+        # SPEAKER PREVIEW COMPONENT
+        (audio_preview_group,
+         audio_player,
+         speech_input_textbox,
+         generate_speech_btn) = SpeechPreviewComponent()
 
-        with gr.Group(visible=False) as speaker_preview_group:
-
-            # speaker_preview_message = gr.Markdown(
-            #     value="### _Generating speech, commence sitting at the edge of your seat..._",
-            #     elem_classes=['processing-text'],
-            #     visible=True
-            # )
-
-            speaker_audio_player = gr.Audio(
-                interactive=False,
-                show_download_button=True,
-            )
-
-            speaker_text_textbox = gr.Textbox(
-                label="What should I say?",
-                placeholder="Enter text to speak",
-                lines=3,
-                interactive=True,
-                value=choice(speech_input_defaults)
-            )
-
-            generate_speech_btn = gr.Button("Generate Speech")
-
-        with gr.Group(visible=False) as speaker_save_group:
-            with gr.Row():
-                speaker_name_textbox = gr.Textbox(
-                    label="Name your Franken-Speaker™",
-                    placeholder="Enter Franken-Speaker™ name",
-                    interactive=True,
-                    scale=3
-                )
-
-                save_speaker_btn = gr.Button("Save Franken-Speaker™", scale=1)
-
-        # speaker_save_message = gr.Markdown(
-        #     value="### _Speaker Saved!_",
-        #     elem_classes=['processing-text'],
-        #     visible=True
-        # )
+        # SAVE SPEAKER COMPONENT
+        (speaker_save_group,
+         speaker_name_textbox,
+         save_speaker_btn,
+         save_notification_text) = TextboxSubmitComponent(
+            textbox_label="Name your Franken-Speaker™",
+            button_label="Save Franken-Speaker™",
+            placeholder="Enter Franken-Speaker™ name"
+        )
 
         # Event Handlers
         for speaker_control in self.speaker_control_list:
             speaker_control.input(
-                self.reset_audio_player,
+                lambda: [gr.Audio(value=None), gr.Group(visible=False)],
                 inputs=[],
-                outputs=speaker_audio_player
+                outputs=[audio_player, speaker_save_group]
             )
 
         load_speakers_btn.click(
@@ -146,7 +115,8 @@ class MixUI:
             inputs=[speaker_select],
             outputs=[
                 speaker_control_group,
-                speaker_preview_group,
+                audio_preview_group,
+                audio_player,
                 speaker_save_group
             ]
         )
@@ -162,9 +132,9 @@ class MixUI:
             inputs=[speaker_select],
             outputs=self.speaker_control_list
         ).then(
-            self.reset_audio_player,
+            lambda: gr.Audio(value=None),
             inputs=[],
-            outputs=speaker_audio_player
+            outputs=audio_player
         )
 
         reset_speaker_weights_btn.click(
@@ -177,14 +147,14 @@ class MixUI:
             self.handle_generate_speech_click,
             inputs=[],
             outputs=[
-                speaker_audio_player,
+                audio_player,
                 speaker_save_group
             ]
         ).then(
             self.do_inference,
-            inputs=[speaker_text_textbox],
+            inputs=[speech_input_textbox],
             outputs=[
-                speaker_audio_player,
+                audio_player,
                 speaker_save_group
             ]
         )
@@ -248,6 +218,7 @@ class MixUI:
         return [
             gr.Group(visible=is_valid_count),
             gr.Group(visible=is_valid_count),
+            gr.Audio(value=None),
             gr.Group(visible=False)
         ]
 
@@ -373,6 +344,3 @@ class MixUI:
     def randomize_speaker_weights(self):
         for speaker_weight in self.speaker_weights:
             speaker_weight["weight"] = self.get_spicy_value()
-
-    def reset_audio_player(self):
-        return gr.Audio(value=None)
