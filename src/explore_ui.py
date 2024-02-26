@@ -79,8 +79,6 @@ class ExploreUI:
         ]
 
     def generate_speech(self, speaker, speech_text):
-        print(f"Generate speech for {speaker} with text: {speech_text}")
-
         return [
             gr.Group(visible=True),
             gr.Button(interactive=False),
@@ -88,8 +86,6 @@ class ExploreUI:
         ]
 
     def do_inference(self, speaker, speech_text):
-
-        print(f"Running inference for {speaker} with text: {speech_text}")
         self.speaker_data = self.speakers_handler.get_speaker_data(speaker)
 
         gpt_cond_latent = self.speaker_data['gpt_cond_latent']

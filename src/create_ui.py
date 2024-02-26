@@ -136,8 +136,6 @@ class CreateUI:
         ]
 
     def generate_speech(self, speech_text):
-        print(f"Generate speech with text: {speech_text}")
-
         return [
             gr.Group(visible=True),
             gr.Button(interactive=False),
@@ -146,7 +144,6 @@ class CreateUI:
         ]
 
     def do_inference(self, speech_text):
-        print(f"Running inference with text: {speech_text}")
         wav_file = "https://www2.cs.uic.edu/~i101/SoundFiles/StarWars3.wav"
 
         if (self.gpt_cond_latent is None or self.speaker_embedding is None):
