@@ -33,105 +33,107 @@ class ForgeCreateView(ForgeBaseView):
 
         section_description = SectionDescriptionComponent(
             value=self.section_content.get("section_description"))
+        with gr.Column() as ui_container:
+            with gr.Group() as speaker_upload_group:
+                file_uploader = gr.File(
+                    label=self.section_content.get("file_uploader_label"),
+                    type="filepath",
+                    file_count="multiple",
+                    file_types=["wav", "mp3"],
+                    interactive=True
+                )
 
-        with gr.Group() as speaker_upload_group:
-            file_uploader = gr.File(
-                label=self.section_content.get("file_uploader_label"),
-                type="filepath",
-                file_count="multiple",
-                file_types=["wav", "mp3"],
-                interactive=True
+                create_speaker_embedding_btn = gr.Button(
+                    value=self.section_content.get(
+                        "create_speaker_embedding_btn_label"),
+                    interactive=False
+                )
+
+            speaker_embedding_text = NotificationComponent(
+                value=self.section_content.get("notification_create_embedding"))
+
+            # SPEAKER PREVIEW COMPONENT
+            (speaker_preview_group,
+             speaker_audio_player,
+             speech_textbox,
+             preview_speaker_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
+
+            speech_textbox.change(
+                validate_text_box,
+                inputs=[speech_textbox],
+                outputs=preview_speaker_btn
             )
 
-            create_speaker_embedding_btn = gr.Button(
-                value=self.section_content.get(
-                    "create_speaker_embedding_btn_label"),
-                interactive=False
+            # SAVE SPEAKER COMPONENT
+            (speaker_save_group,
+             speaker_name_textbox,
+             save_speaker_btn,
+             save_group_messages) = TextboxSubmitComponent(
+                textbox_label=self.common_content.get(
+                    "save_speaker_name_label"),
+                button_label=self.common_content.get("save_speaker_btn_label"),
+                placeholder=self.common_content.get(
+                    "save_speaker_placeholder"),
+                notification_message=self.common_content.get(
+                    "save_speaker_success_msg")
             )
 
-        speaker_embedding_text = NotificationComponent(
-            value=self.section_content.get("notification_create_embedding"))
+            # Setup Events
+            file_uploader.change(
+                validate_file_uploader,
+                inputs=[file_uploader],
+                outputs=create_speaker_embedding_btn
+            )
 
-        # SPEAKER PREVIEW COMPONENT
-        (speaker_preview_group,
-         speaker_audio_player,
-         speech_textbox,
-         preview_speaker_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
+            # Extracts the speaker embedding from the uploaded audio, then displays the audio player group, but hiding the audio player
+            create_speaker_embedding_btn.click(
+                lambda: ([
+                    gr.Markdown(visible=True),
+                    gr.Button(interactive=False),
+                    gr.Group(visible=False),
+                    gr.Group(visible=False),
+                    gr.Markdown(visible=False)
+                ]),
+                outputs=[
+                    speaker_embedding_text,
+                    create_speaker_embedding_btn,
+                    speaker_preview_group,
+                    speaker_save_group,
+                    save_group_messages
+                ],
+            ).then(
+                self.get_speaker_embedding,
+                inputs=[file_uploader],
+                outputs=[
+                    speaker_embedding_text,
+                    speaker_preview_group
+                ]
+            )
 
-        speech_textbox.change(
-            validate_text_box,
-            inputs=[speech_textbox],
-            outputs=preview_speaker_btn
-        )
+            # Generates the speech from the speaker embedding and the text,
+            preview_speaker_btn.click(
+                self.generate_speech,
+                outputs=[
+                    speaker_preview_group,
+                    speaker_save_group,
+                    speaker_audio_player,
+                    save_group_messages
+                ]
+            ).then(
+                self.do_inference,
+                inputs=[speech_textbox],
+                outputs=[
+                    preview_speaker_btn,
+                    speaker_audio_player,
+                    speaker_save_group
+                ]
+            )
 
-        # SAVE SPEAKER COMPONENT
-        (speaker_save_group,
-         speaker_name_textbox,
-         save_speaker_btn,
-         save_group_messages) = TextboxSubmitComponent(
-            textbox_label=self.common_content.get("save_speaker_name_label"),
-            button_label=self.common_content.get("save_speaker_btn_label"),
-            placeholder=self.common_content.get("save_speaker_placeholder"),
-            notification_message=self.common_content.get(
-                "save_speaker_success_msg")
-        )
-
-        # Setup Events
-        file_uploader.change(
-            validate_file_uploader,
-            inputs=[file_uploader],
-            outputs=create_speaker_embedding_btn
-        )
-
-        # Extracts the speaker embedding from the uploaded audio, then displays the audio player group, but hiding the audio player
-        create_speaker_embedding_btn.click(
-            lambda: ([
-                gr.Markdown(visible=True),
-                gr.Button(interactive=False),
-                gr.Group(visible=False),
-                gr.Group(visible=False),
-                gr.Markdown(visible=False)
-            ]),
-            outputs=[
-                speaker_embedding_text,
-                create_speaker_embedding_btn,
-                speaker_preview_group,
-                speaker_save_group,
-                save_group_messages
-            ],
-        ).then(
-            self.get_speaker_embedding,
-            inputs=[file_uploader],
-            outputs=[
-                speaker_embedding_text,
-                speaker_preview_group
-            ]
-        )
-
-        # Generates the speech from the speaker embedding and the text,
-        preview_speaker_btn.click(
-            self.generate_speech,
-            outputs=[
-                speaker_preview_group,
-                speaker_save_group,
-                speaker_audio_player,
-                save_group_messages
-            ]
-        ).then(
-            self.do_inference,
-            inputs=[speech_textbox],
-            outputs=[
-                preview_speaker_btn,
-                speaker_audio_player,
-                speaker_save_group
-            ]
-        )
-
-        save_speaker_btn.click(
-            self.save_speaker,
-            inputs=[speaker_name_textbox],
-            outputs=save_group_messages
-        )
+            save_speaker_btn.click(
+                self.save_speaker,
+                inputs=[speaker_name_textbox],
+                outputs=save_group_messages
+            )
 
     def get_speaker_embedding(self, wav_files):
         gpt_cond_latent, speaker_embedding = self.model_handler.extract_speaker_embedding(

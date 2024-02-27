@@ -47,180 +47,169 @@ class ForgeMixView(ForgeBaseView):
         load_speakers_btn = gr.Button(
             self.common_content.get("load_speakers_btn_label"))
 
-        with gr.Group(visible=False) as speaker_group:
-            with gr.Row():
-                speaker_select = gr.Dropdown(
-                    label=self.common_content.get(
-                        "select_speakers_dropdown_label"),
-                    choices=[],
-                    scale=3,
-                    multiselect=True,
-                    interactive=True
-                )
-
-                feeling_spicy_btn = gr.Button(
-                    value=self.section_content.get("feeling_spicy_btn_label"), scale=1)
-
-        with gr.Group(visible=False) as speaker_control_group:
-            with gr.Row():
-                for idx in list(range(0, MAX_SPEAKER_CONTROL_COUNT)):
-                    speaker_name = self.get_speaker_name_by_index(idx)
-
-                    speaker_control = gr.Slider(
-                        label=speaker_name,
-                        minimum=SLIDER_MIN,
-                        maximum=SLIDER_MAX,
-                        step=SLIDER_STEP,
-                        value=1,
-                        interactive=True,
-                        visible=False,
-                        elem_classes="slider-ctrl",
-                        elem_id=str(idx)
+        with gr.Column() as ui_container:
+            with gr.Group(visible=False) as speaker_select_group:
+                with gr.Row():
+                    speaker_select = gr.Dropdown(
+                        label=self.common_content.get(
+                            "select_speakers_dropdown_label"),
+                        choices=[],
+                        scale=3,
+                        multiselect=True,
+                        interactive=True
                     )
 
-                    self.speaker_control_list.append(speaker_control)
+                    feeling_spicy_btn = gr.Button(
+                        value=self.section_content.get("feeling_spicy_btn_label"), scale=1)
 
-            with gr.Row():
-                randomize_speaker_weights_btn = gr.Button(
-                    value=self.section_content.get("randomize_weights_btn_label"))
-                reset_speaker_weights_btn = gr.Button(
-                    value=self.section_content.get("reset_weights_btn_label"))
+            with gr.Group(visible=False) as speaker_control_group:
+                with gr.Row():
+                    for idx in list(range(0, MAX_SPEAKER_CONTROL_COUNT)):
+                        speaker_name = self.get_speaker_name_by_index(idx)
 
-        # SPEAKER PREVIEW COMPONENT
-        (audio_preview_group,
-         audio_player,
-         speech_input_textbox,
-         generate_speech_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
+                        speaker_control = gr.Slider(
+                            label=speaker_name,
+                            minimum=SLIDER_MIN,
+                            maximum=SLIDER_MAX,
+                            step=SLIDER_STEP,
+                            value=1,
+                            interactive=True,
+                            visible=False,
+                            elem_classes="slider-ctrl",
+                            elem_id=str(idx)
+                        )
 
-        # SAVE SPEAKER COMPONENT
-        (speaker_save_group,
-         speaker_name_textbox,
-         save_speaker_btn,
-         save_notification_text) = TextboxSubmitComponent(
-            textbox_label=self.common_content.get("save_speaker_name_label"),
-            button_label=self.common_content.get("save_speaker_btn_label"),
-            placeholder=self.common_content.get("save_speaker_placeholder"),
-            notification_message=self.common_content.get(
-                "save_speaker_success_msg")
-        )
+                        self.speaker_control_list.append(speaker_control)
 
-        # Event Handlers
-        for speaker_control in self.speaker_control_list:
-            speaker_control.input(
-                self.handle_speaker_slider_change,
-                inputs=[speaker_control],
-                outputs=[]
-            ).then(
-                lambda: [gr.Audio(value=None), gr.Group(visible=False)],
-                inputs=[],
-                outputs=[audio_player, speaker_save_group]
+                with gr.Row():
+                    randomize_speaker_weights_btn = gr.Button(
+                        value=self.section_content.get("randomize_weights_btn_label"))
+                    reset_speaker_weights_btn = gr.Button(
+                        value=self.section_content.get("reset_weights_btn_label"))
+
+            # SPEAKER PREVIEW COMPONENT
+            (audio_preview_group,
+             audio_player,
+             speech_input_textbox,
+             generate_speech_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
+
+            # SAVE SPEAKER COMPONENT
+            (speaker_save_group,
+             speaker_name_textbox,
+             save_speaker_btn,
+             save_notification_text) = TextboxSubmitComponent(
+                textbox_label=self.common_content.get(
+                    "save_speaker_name_label"),
+                button_label=self.common_content.get("save_speaker_btn_label"),
+                placeholder=self.common_content.get(
+                    "save_speaker_placeholder"),
+                notification_message=self.common_content.get(
+                    "save_speaker_success_msg")
             )
 
-        load_speakers_btn.click(
-            self.handle_load_speaker_click,
-            inputs=[],
-            outputs=[
-                speaker_group,
-                speaker_select
-            ]
-        )
+            # Event Handlers
+            for speaker_control in self.speaker_control_list:
+                speaker_control.input(
+                    self.handle_speaker_slider_change,
+                    inputs=[speaker_control],
+                    outputs=[]
+                ).then(
+                    lambda: [gr.Audio(value=None), gr.Group(visible=False)],
+                    inputs=[],
+                    outputs=[audio_player, speaker_save_group]
+                )
 
-        speaker_select.change(
-            self.update_speaker_controls,
-            inputs=[speaker_select],
-            outputs=self.speaker_control_list
-        ).then(
-            self.handle_speaker_select_change,
-            inputs=[speaker_select],
-            outputs=[
-                speaker_control_group,
-                audio_preview_group,
-                audio_player,
-                speaker_save_group,
-            ]
-        )
+            load_speakers_btn.click(
+                self.handle_load_speaker_click,
+                inputs=[],
+                outputs=[
+                    speaker_select_group,
+                    speaker_select
+                ]
+            )
 
-        feeling_spicy_btn.click(
-            self.handle_spicy_click,
-            inputs=[],
-            outputs=speaker_select
-        )
+            speaker_select.change(
+                self.update_speaker_controls,
+                inputs=[speaker_select],
+                outputs=self.speaker_control_list
+            ).then(
+                self.handle_speaker_select_change,
+                inputs=[speaker_select],
+                outputs=[
+                    speaker_control_group,
+                    audio_preview_group,
+                    audio_player,
+                    speaker_save_group,
+                ]
+            )
 
-        randomize_speaker_weights_btn.click(
-            self.handle_randomize_speaker_weights_click,
-            inputs=[speaker_select],
-            outputs=self.speaker_control_list
-        ).then(
-            lambda: gr.Audio(value=None),
-            inputs=[],
-            outputs=audio_player
-        )
+            feeling_spicy_btn.click(
+                self.handle_spicy_click,
+                inputs=[],
+                outputs=speaker_select
+            )
 
-        reset_speaker_weights_btn.click(
-            self.handle_reset_speaker_weights_click,
-            inputs=[speaker_select],
-            outputs=self.speaker_control_list
-        )
+            randomize_speaker_weights_btn.click(
+                self.handle_randomize_speaker_weights_click,
+                inputs=[speaker_select],
+                outputs=self.speaker_control_list
+            ).then(
+                lambda: gr.Audio(value=None),
+                inputs=[],
+                outputs=audio_player
+            )
 
-        generate_speech_btn.click(
-            self.handle_generate_speech_click,
-            inputs=[],
-            outputs=[
-                audio_player,
-                speaker_save_group,
-                save_notification_text
-            ]
-        ).then(
-            self.lock_ui,
-            outputs=[
-                speaker_select,
-                feeling_spicy_btn,
-                randomize_speaker_weights_btn,
-                reset_speaker_weights_btn
-            ]
-        ).then(
-            self.disable_control_list,
-            inputs=[speaker_select],
-            outputs=self.speaker_control_list
-        ).then(
-            self.do_inference,
-            inputs=[speech_input_textbox],
-            outputs=[
-                generate_speech_btn,
-                audio_player,
-                speaker_save_group,
-            ]
-        ).then(
-            self.unlock_ui,
-            outputs=[
-                speaker_select,
-                feeling_spicy_btn,
-                randomize_speaker_weights_btn,
-                reset_speaker_weights_btn
-            ]
-        ).then(
-            self.enable_control_list,
-            inputs=[speaker_select],
-            outputs=self.speaker_control_list
-        )
+            reset_speaker_weights_btn.click(
+                self.handle_reset_speaker_weights_click,
+                inputs=[speaker_select],
+                outputs=self.speaker_control_list
+            )
 
-        speaker_name_textbox.change(
-            validate_text_box,
-            inputs=[speaker_name_textbox],
-            outputs=save_speaker_btn
-        )
+            # TODO: Clean up this mess
+            generate_speech_btn.click(
+                self.handle_generate_speech_click,
+                inputs=[],
+                outputs=[
+                    audio_player,
+                    ui_container,
+                    speaker_save_group
+                ]
+            ).then(
+                self.disable_control_list,
+                inputs=[speaker_select],
+                outputs=self.speaker_control_list
+            ).then(
+                self.do_inference,
+                inputs=[speech_input_textbox],
+                outputs=[
+                    generate_speech_btn,
+                    audio_player,
+                    ui_container,
+                    speaker_save_group
+                ]
+            ).then(
+                self.enable_control_list,
+                inputs=[speaker_select],
+                outputs=self.speaker_control_list
+            )
 
-        save_speaker_btn.click(
-            self.handle_save_speaker_click,
-            inputs=[speaker_name_textbox],
-            outputs=save_notification_text
-        ).then(
-            self.handle_load_speaker_click,
-            outputs=[
-                speaker_group,
-                speaker_select
-            ]
-        )
+            speaker_name_textbox.change(
+                validate_text_box,
+                inputs=[speaker_name_textbox],
+                outputs=save_speaker_btn
+            )
+
+            save_speaker_btn.click(
+                self.handle_save_speaker_click,
+                inputs=[speaker_name_textbox],
+                outputs=save_notification_text
+            ).then(
+                self.handle_load_speaker_click,
+                outputs=[
+                    speaker_select_group,
+                    speaker_select
+                ]
+            )
 
     # Helpers
     def update_speaker_controls(self, speaker_select):
@@ -287,12 +276,12 @@ class ForgeMixView(ForgeBaseView):
         self.speaker_embedding = self.speakers_handler.create_speaker_embedding_from_mix(
             self.speaker_weights)
 
-        print("generating speech with speaker_weights", self.speaker_weights)
+        # print("generating speech with speaker_weights", self.speaker_weights)
 
         return [
             gr.Audio(value=None),
-            gr.Group(visible=False),
-            gr.Markdown(visible=False)
+            gr.Column(elem_classes=["ui-disabled"]),
+            gr.Group(visible=False)
         ]
 
     def handle_randomize_speaker_weights_click(self, selected_speakers: SpeakerNameList):
@@ -355,21 +344,14 @@ class ForgeMixView(ForgeBaseView):
             speech_input_text,
             self.speaker_embedding["gpt_cond_latent"],
             self.speaker_embedding["speaker_embedding"],
-            self.speaker_weights_to_file_name()
+            self.speaker_weights_to_file_name(),
         )
 
         return [
             gr.Button(interactive=True),
             gr.Audio(value=wav_file),
+            gr.Column(elem_classes=[]),
             gr.Group(visible=True)
-        ]
-
-    def lock_ui(self):
-        return [
-            gr.Dropdown(interactive=False),
-            gr.Button(interactive=False),
-            gr.Button(interactive=False),
-            gr.Button(interactive=False)
         ]
 
     def disable_control_list(self, selected_speakers: SpeakerNameList):
@@ -388,14 +370,6 @@ class ForgeMixView(ForgeBaseView):
             next_slider_list.append(slider)
 
         return next_slider_list
-
-    def unlock_ui(self):
-        return [
-            gr.Dropdown(interactive=True),
-            gr.Button(interactive=True),
-            gr.Button(interactive=True),
-            gr.Button(interactive=True)
-        ]
 
     def enable_control_list(self, selected_speakers: SpeakerNameList):
         next_slider_list: SliderList = []

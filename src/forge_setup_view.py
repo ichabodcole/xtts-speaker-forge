@@ -51,63 +51,67 @@ class ForgeSetupView(ForgeBaseView):
             value=self.section_content.get('section_description')
         )
 
-        checkpoint_dir_textbox = gr.Textbox(
-            value=self.checkpoint_dir,
-            label=self.section_content.get('checkpoint_dir_label'),
-            interactive=False,
-            max_lines=1
-        )
-        vocab_file_textbox = gr.Textbox(
-            value=self.vocab_file,
-            label=self.section_content.get('vocab_file_label'),
-            interactive=False,
-            max_lines=1
-        )
-        config_file_textbox = gr.Textbox(
-            value=self.config_file,
-            label=self.section_content.get('config_file_label'),
-            interactive=False,
-            max_lines=1
-        )
-        speaker_file_textbox = gr.Textbox(
-            value=self.speaker_file,
-            label=self.section_content.get('speaker_file_label'),
-            interactive=False,
-            max_lines=1
-        )
+        with gr.Column() as ui_container:
+            checkpoint_dir_textbox = gr.Textbox(
+                value=self.checkpoint_dir,
+                label=self.section_content.get('checkpoint_dir_label'),
+                interactive=False,
+                max_lines=1
+            )
+            vocab_file_textbox = gr.Textbox(
+                value=self.vocab_file,
+                label=self.section_content.get('vocab_file_label'),
+                interactive=False,
+                max_lines=1
+            )
+            config_file_textbox = gr.Textbox(
+                value=self.config_file,
+                label=self.section_content.get('config_file_label'),
+                interactive=False,
+                max_lines=1
+            )
+            speaker_file_textbox = gr.Textbox(
+                value=self.speaker_file,
+                label=self.section_content.get('speaker_file_label'),
+                interactive=False,
+                max_lines=1
+            )
 
-        load_model_btn = gr.Button(
-            value=self.section_content.get("load_model_btn_label"))
+            load_model_btn = gr.Button(
+                value=self.section_content.get("load_model_btn_label"))
 
-        result_message = NotificationComponent(
-            label="Result", value=self.section_content.get("model_load_start"))
+            result_message = NotificationComponent(
+                label="Result", value=self.section_content.get("model_load_start"))
 
-        load_model_btn.click(
-            lambda: gr.Markdown(visible=True),
-            inputs=[],
-            outputs=[result_message]
-        ).then(
-            self.validate_paths_and_load_model,
-            inputs=[
-                checkpoint_dir_textbox,
-                vocab_file_textbox,
-                config_file_textbox,
-                speaker_file_textbox
-            ],
-            outputs=[
-                result_message,
-                self.explore_tab,
-                self.create_tab,
-                self.mix_tab,
-                self.export_tab
-            ]
-        )
+            load_model_btn.click(
+                lambda: [gr.Button(interactive=False),
+                         gr.Markdown(visible=True)],
+                inputs=[],
+                outputs=[load_model_btn, result_message]
+            ).then(
+                self.validate_paths_and_load_model,
+                inputs=[
+                    checkpoint_dir_textbox,
+                    vocab_file_textbox,
+                    config_file_textbox,
+                    speaker_file_textbox
+                ],
+                outputs=[
+                    load_model_btn,
+                    result_message,
+                    self.explore_tab,
+                    self.create_tab,
+                    self.mix_tab,
+                    self.export_tab,
+                ]
+            )
 
     def validate_paths_and_load_model(self, checkpoint_dir, vocab_file, config_file, speaker_file):
         print(speaker_file)
 
         def response(message, is_ui_enabled):
             return [
+                gr.Button(interactive=is_ui_enabled),
                 gr.Markdown(value=message),
                 gr.Tab(interactive=is_ui_enabled),
                 gr.Tab(interactive=is_ui_enabled),
