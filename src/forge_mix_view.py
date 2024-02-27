@@ -331,7 +331,7 @@ class ForgeMixView(ForgeBaseView):
         self.speakers_handler.add_speaker(
             speaker_name, gpt_cond_latent, speaker_embedding)
 
-        # self.speakers_handler.save_speaker_file()
+        self.speakers_handler.save_speaker_file()
 
         return gr.Markdown(
             value=format_notification(
