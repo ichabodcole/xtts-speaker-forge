@@ -30,4 +30,5 @@ If you encounter package install errors during step #4 of "Run locally" try the 
 - [ ] Add "Edit" mode to allow renaming and deleting speakers, and adding additional speaker meta data.
 - [ ] Audio file caching to quickly playback recently generated audio files.
 - [ ] Allow editing model file paths in Gradio interface (if feasible)
+- [ ] Allow direct upload of speaker files (if feasible)
 - [ ] Explore adding different voice mixing methods.
