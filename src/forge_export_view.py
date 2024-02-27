@@ -28,7 +28,7 @@ class ForgeExportView(ForgeBaseView):
         export_file_btn = gr.Button(
             value=self.section_content['export_file_btn_label'])
 
-        download_file = gr.File(visible=False)
+        download_file = gr.File(visible=False, label="Download Speaker File")
 
         export_file_btn.click(
             self.export_speaker_file,
@@ -38,4 +38,4 @@ class ForgeExportView(ForgeBaseView):
     def export_speaker_file(self):
         file_path = self.speakers_handler.speakers_file
 
-        return file_path
+        return gr.File(value=file_path, visible=True)
