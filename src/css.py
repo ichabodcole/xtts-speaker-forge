@@ -1,8 +1,8 @@
 def app_css():
     return """
-        #header-image { text-align: center; }
+        #header-image { display: flex; justify-content: center; pointer-events: none; }
         #header-image button { display: flex; justify-content: center; pointer-events: none; }
-        #header-image img { max-width: 876px }
+        #header-image img { max-width: 876px; width: 100%; }
         .xtts-header { text-align: center; margin-bottom: -10px; }
         .xtts-header h1 {
             --body-text-color: rgb(103 232 249);

@@ -195,8 +195,13 @@ if __name__ == "__main__":
         # http://www.gigaglitters.com/created/b7VvpETJqS.gif
 
         gr.Markdown("# _XTTS_", elem_classes=['xtts-header'])
-        gr.Image(value="https://i.postimg.cc/dDMzdf2g/speaker-forge-glitter.gif", elem_id="header-image",
-                 image_mode="RGBA", show_download_button=False, container=False, interactive=False)
+        # gr.Image(value="https://i.postimg.cc/dDMzdf2g/speaker-forge-glitter.gif", elem_id="header-image",
+        #          image_mode="RGBA", show_download_button=False, container=False, interactive=False)
+        gr.HTML("""
+                <div id="header-image">
+                    <img src="https://i.postimg.cc/dDMzdf2g/speaker-forge-glitter.gif" alt="XTTS Speaker Forge">
+                </div>
+                """)
         gr.Markdown(f"_v{latest_version}_")
 
         with gr.Tab("Setup", elem_id="tab-setup"):
