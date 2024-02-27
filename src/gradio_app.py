@@ -191,12 +191,11 @@ if __name__ == "__main__":
     setup_view.set_tabs(explore_tab, create_tab, mix_tab, export_tab)
 
     with gr.Blocks(css=app_css()) as app:
-        # https://i.postimg.cc/rpbTgB2y/b7-Vvp-ETJq-S.gif
+        # https://i.postimg.cc/dDMzdf2g/speaker-forge-glitter.gif
         # http://www.gigaglitters.com/created/b7VvpETJqS.gif
-        header_image_path = assets_dir / "images/speaker_forge_glitter.gif"
 
         gr.Markdown("# _XTTS_", elem_classes=['xtts-header'])
-        gr.Image(value=header_image_path, elem_id="header-image",
+        gr.Image(value="https://i.postimg.cc/dDMzdf2g/speaker-forge-glitter.gif", elem_id="header-image",
                  image_mode="RGBA", show_download_button=False, container=False, interactive=False)
         gr.Markdown(f"_v{latest_version}_")
 
