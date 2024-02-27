@@ -1,29 +1,42 @@
+import time
 import gradio as gr
 from common_ui import validate_file_uploader, validate_text_box
+from components.notification_component import NotificationComponent
+from components.section_description_component import SectionDescriptionComponent
 from components.speaker_preview_component import SpeechPreviewComponent
 from components.textbox_submit_component import TextboxSubmitComponent
+from content_handler import ContentHandler
+from forge_base_view import ForgeBaseView
 from model_handler import ModelHandler
 from speakers_handler import SpeakersHandler
 from utils.utils import format_notification, get_random_speech_text
 
 
-class CreateUI:
+class ForgeCreateView(ForgeBaseView):
     gpt_cond_latent = None
     speaker_embedding = None
+    section_content: dict
+    common_content: dict
 
-    def __init__(self, speakers_handler: SpeakersHandler, model_handler: ModelHandler):
-        self.model_handler = model_handler
-        self.speakers_handler = speakers_handler
+    def __init__(
+        self,
+        speaker_handler: SpeakersHandler,
+        model_handler: ModelHandler,
+        content_handler: ContentHandler
+    ):
+        super().__init__(speaker_handler, model_handler, content_handler)
+        self.section_content = self.content_handler.get_section_content(
+            "create")
+        self.common_content = self.content_handler.get_common_content()
 
-    def createUI(self):
-        gr.Markdown(
-            value="_Create a new speaker from one or more reference wavs/mp3s._",
-            elem_classes=["section-description"]
-        )
+    def init_ui(self):
+
+        section_description = SectionDescriptionComponent(
+            value=self.section_content.get("section_description"))
 
         with gr.Group() as speaker_upload_group:
             file_uploader = gr.File(
-                label="Upload Speaker wavs or mp3s",
+                label=self.section_content.get("file_uploader_label"),
                 type="filepath",
                 file_count="multiple",
                 file_types=["wav", "mp3"],
@@ -31,21 +44,19 @@ class CreateUI:
             )
 
             create_speaker_embedding_btn = gr.Button(
-                "Create Speaker Embedding",
+                value=self.section_content.get(
+                    "create_speaker_embedding_btn_label"),
                 interactive=False
             )
 
-        speaker_embedding_text = gr.Markdown(
-            value="### _Creating speaker embedding, try counting some sheep..._",
-            visible=False,
-            elem_classes=["processing-text"]
-        )
+        speaker_embedding_text = NotificationComponent(
+            value=self.section_content.get("notification_create_embedding"))
 
         # SPEAKER PREVIEW COMPONENT
         (speaker_preview_group,
          speaker_audio_player,
          speech_textbox,
-         preview_speaker_btn) = SpeechPreviewComponent()
+         preview_speaker_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
 
         speech_textbox.change(
             validate_text_box,
@@ -58,10 +69,11 @@ class CreateUI:
          speaker_name_textbox,
          save_speaker_btn,
          save_group_messages) = TextboxSubmitComponent(
-            textbox_label="Speaker Name",
-            button_label="Save Speaker",
-            placeholder="Enter a unique speaker name and save it to the speaker file.",
-            notification_message="Speaker saved successfully!"
+            textbox_label=self.common_content.get("save_speaker_name_label"),
+            button_label=self.common_content.get("save_speaker_btn_label"),
+            placeholder=self.common_content.get("save_speaker_placeholder"),
+            notification_message=self.common_content.get(
+                "save_speaker_success_msg")
         )
 
         # Setup Events
@@ -69,24 +81,23 @@ class CreateUI:
             validate_file_uploader,
             inputs=[file_uploader],
             outputs=create_speaker_embedding_btn
-        ).then(
-            self.reset_audio_player,
-            inputs=[],
-            outputs=speaker_audio_player
         )
 
         # Extracts the speaker embedding from the uploaded audio, then displays the audio player group, but hiding the audio player
         create_speaker_embedding_btn.click(
-            lambda: [
+            lambda: ([
                 gr.Markdown(visible=True),
                 gr.Button(interactive=False),
                 gr.Group(visible=False),
-                gr.Group(visible=False)],
+                gr.Group(visible=False),
+                gr.Markdown(visible=False)
+            ]),
             outputs=[
                 speaker_embedding_text,
                 create_speaker_embedding_btn,
                 speaker_preview_group,
-                speaker_save_group
+                speaker_save_group,
+                save_group_messages
             ],
         ).then(
             self.get_speaker_embedding,
@@ -100,12 +111,11 @@ class CreateUI:
         # Generates the speech from the speaker embedding and the text,
         preview_speaker_btn.click(
             self.generate_speech,
-            inputs=[speaker_name_textbox],
             outputs=[
                 speaker_preview_group,
-                preview_speaker_btn,
                 speaker_save_group,
-                speaker_audio_player
+                speaker_audio_player,
+                save_group_messages
             ]
         ).then(
             self.do_inference,
@@ -135,12 +145,12 @@ class CreateUI:
             gr.Group(visible=True),
         ]
 
-    def generate_speech(self, speech_text):
+    def generate_speech(self):
         return [
             gr.Group(visible=True),
-            gr.Button(interactive=False),
             gr.Group(visible=False),
-            gr.Audio(value=None)
+            gr.Audio(value=None),
+            gr.Markdown(visible=False)
         ]
 
     def do_inference(self, speech_text):
@@ -185,6 +195,3 @@ class CreateUI:
                 f"Speaker \"{speaker_name}\" added successfully!"),
             visible=True
         )
-
-    def reset_audio_player(self):
-        return gr.Audio(value=None)

@@ -3,18 +3,23 @@ import logging
 import argparse
 import sys
 import gradio as gr
+from content_handler import ContentHandler
+from css import app_css
+from forge_about_view import ForgeAboutView
+from forge_changelog_view import ForgeChangelogView
+from forge_export_view import ForgeExportView
 from model_handler import ModelHandler
 from speakers_handler import SpeakersHandler
 import pathlib
-import json
-from create_ui import CreateUI
-from explore_ui import ExploreUI
-from setup_ui import SetupUI
-from mix_ui import MixUI
+from forge_create_view import ForgeCreateView
+from forge_explore_view import ForgeExploreView
+from forge_setup_view import ForgeSetupView
+from forge_mix_view import ForgeMixView
+from utils.utils import get_latest_changelog_version
 
+latest_version = get_latest_changelog_version()
 src_dir = pathlib.Path(__file__).parent.resolve()
-config_file_name = "app_config.json"
-config_file_path = src_dir / config_file_name
+content_file_path = src_dir / "content.json"
 
 checkpoint_dir = os.environ.get("CHECKPOINT_DIR")
 config_file = os.environ.get("CONFIG_PATH")
@@ -30,14 +35,59 @@ if not vocab_file:
 if not speaker_file:
     raise ValueError("SPEAKER_PATH environment variable not set")
 
+
+content_handler = ContentHandler(content_file_path)
 speakers_handler = SpeakersHandler()
 speakers_handler.set_speaker_file(speaker_file)
 
 model_handler = ModelHandler()
-setup_ui = SetupUI(speakers_handler, model_handler)
-explore_ui = ExploreUI(speakers_handler, model_handler)
-create_ui = CreateUI(speakers_handler, model_handler)
-mix_ui = MixUI(speakers_handler, model_handler)
+setup_view = ForgeSetupView(
+    speakers_handler,
+    model_handler,
+    content_handler
+)
+setup_view.set_file_paths(
+    checkpoint_dir,
+    vocab_file,
+    config_file,
+    speaker_file
+)
+
+explore_view = ForgeExploreView(
+    speakers_handler,
+    model_handler,
+    content_handler
+)
+
+create_view = ForgeCreateView(
+    speakers_handler,
+    model_handler,
+    content_handler
+)
+
+mix_view = ForgeMixView(
+    speakers_handler,
+    model_handler,
+    content_handler
+)
+
+export_view = ForgeExportView(
+    speakers_handler,
+    model_handler,
+    content_handler
+)
+
+changelog_view = ForgeChangelogView(
+    speakers_handler,
+    model_handler,
+    content_handler
+)
+
+about_view = ForgeAboutView(
+    speakers_handler,
+    model_handler,
+    content_handler
+)
 
 
 class Logger:
@@ -103,13 +153,7 @@ if __name__ == "__main__":
         default=False,
     )
 
-    # parser.add_argument(
-    #     "--out_path",
-    #     type=str,
-    #     help="Output path updated speaker_xtts.pth file will be saved Default: /tmp/xtts_speaker_forge/",
-    #     default="/tmp/xtts_speaker_forge/",
-    # )
-
+    # TODO: limit create views audio upload size...
     # parser.add_argument(
     #     "--max_audio_length",
     #     type=int,
@@ -119,79 +163,67 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    css = """
-    #header-image { text-align: center; }
-    #header-image button { display: flex; justify-content: center; pointer-events: none; }
-    #header-image img { max-width: 876px }
-    .tab-nav button { font-size: 1.5em; }
-    .tab-nav button.selected { --body-text-color: rgb(103 232 249); }
-    .processing-text { padding-left: 10px; }
-    .section-description { 
-        --body-text-color: rgb(103 232 249);
-        font-size: 1.1em; 
-        margin-top: 5px; 
-        margin-left: 5px;
-    }
-    """
+    explore_tab = gr.Tab(
+        label="Explore",
+        elem_id="tab-explore",
+        interactive=False, render=False
+    )
+    create_tab = gr.Tab(
+        label="Create",
+        elem_id="tab-create",
+        interactive=False,
+        render=False
+    )
+    mix_tab = gr.Tab(
+        label="Mix",
+        elem_id="tab-mix",
+        interactive=False,
+        render=False
+    )
+    export_tab = gr.Tab(
+        label="Export",
+        elem_id="tab-export",
+        interactive=False,
+        render=False
+    )
 
-    with gr.Blocks(css=css) as app:
+    setup_view.set_tabs(explore_tab, create_tab, mix_tab, export_tab)
+
+    with gr.Blocks(css=app_css()) as app:
         # https://i.postimg.cc/rpbTgB2y/b7-Vvp-ETJq-S.gif
         # http://www.gigaglitters.com/created/b7VvpETJqS.gif
+        gr.Markdown("# _XTTS_", elem_classes=['xtts-header'])
         gr.Image(value="http://www.gigaglitters.com/created/b7VvpETJqS.gif", elem_id="header-image",
                  image_mode="RGBA", show_download_button=False, container=False, interactive=False)
-        gr.Markdown("_v1.0.0_")
+        gr.Markdown(f"_v{latest_version}_")
 
         with gr.Tab("Setup", elem_id="tab-setup"):
             with gr.Column():
-                setup_data = setup_ui.createUI(
-                    checkpoint_dir,
-                    vocab_file,
-                    config_file,
-                    speaker_file
-                )
+                setup_view.init_ui()
 
-        with gr.Tab("Explore", elem_id="tab-explore", interactive=False) as explore_tab:
+        with explore_tab.render():
             with gr.Column():
-                explore_ui.createIU()
+                explore_view.init_ui()
 
-        with gr.Tab("Create", elem_id="tab-create", interactive=False) as create_tab:
+        with create_tab.render():
             with gr.Column():
-                create_ui.createUI()
+                create_view.init_ui()
 
-        with gr.Tab("Mix", elem_id="tab-mix", interactive=False) as mix_tab:
+        with mix_tab.render():
             with gr.Column():
-                mix_ui.createUI()
-                pass
+                mix_view.init_ui()
 
-        with gr.Tab("Export", elem_id="tab-export", interactive=False) as export_tab:
+        with export_tab.render():
             with gr.Column():
-                # initExportUI()
-                pass
+                export_view.init_ui()
 
         with gr.Tab("Changelog", elem_id="tab-changelog"):
             with gr.Column():
-                gr.Markdown(
-                    value="_Read the exciting development updates!_",
-                    elem_classes=["section-description"]
-                )
+                changelog_view.init_ui()
 
-        # TODO: Look for a cleaner way to do this
-        setup_data['load_btn'].click(
-            setup_ui.validate_paths_and_load_model,
-            inputs=[
-                setup_data["checkpoint_dir"],
-                setup_data["vocab_file"],
-                setup_data["config_file"],
-                setup_data["speaker_file"]
-            ],
-            outputs=[
-                setup_data["message"],
-                explore_tab,
-                create_tab,
-                mix_tab,
-                export_tab
-            ]
-        )
+        with gr.Tab("About", elem_id="tab-about"):
+            with gr.Column():
+                about_view.init_ui()
 
     app.launch(
         share=args.share,

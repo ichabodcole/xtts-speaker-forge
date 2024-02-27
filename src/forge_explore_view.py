@@ -1,29 +1,40 @@
 import gradio as gr
+from components.section_description_component import SectionDescriptionComponent
+from content_handler import ContentHandler
+from forge_base_view import ForgeBaseView
 from model_handler import ModelHandler
 from components.speaker_preview_component import SpeechPreviewComponent
 from speakers_handler import SpeakersHandler
-from utils.utils import get_random_speech_text
 
 
-class ExploreUI:
+class ForgeExploreView(ForgeBaseView):
     speaker_data = None
+    section_content: dict
+    common_content: dict
 
-    def __init__(self, speakers_handler: SpeakersHandler, model_handler: ModelHandler):
-        self.model_handler = model_handler
-        self.speakers_handler = speakers_handler
+    def __init__(
+        self,
+        speaker_handler: SpeakersHandler,
+        model_handler: ModelHandler,
+        content_handler: ContentHandler
+    ):
+        super().__init__(speaker_handler, model_handler, content_handler)
+        self.section_content = self.content_handler.get_section_content(
+            'explore')
+        self.common_content = self.content_handler.get_common_content()
 
-    def createIU(self):
-        gr.Markdown(
-            value="_Explore the contents of the XTTS speakers file._",
-            elem_classes=["section-description"]
-        )
+    def init_ui(self):
+        section_description = SectionDescriptionComponent(
+            value=self.section_content.get('section_description'))
 
-        load_speakers_btn = gr.Button("Load Speakers")
+        load_speakers_btn = gr.Button(
+            self.common_content.get('load_speakers_btn_label'))
 
         with gr.Group(visible=False) as speaker_group:
             with gr.Row():
                 speaker_select = gr.Dropdown(
-                    label="Speaker",
+                    label=self.common_content.get(
+                        'select_speaker_dropdown_label'),
                     choices=[],
                     scale=3
                 )
@@ -31,7 +42,7 @@ class ExploreUI:
         (audio_preview_group,
          audio_player,
          speech_input_textbox,
-         generate_speech_btn) = SpeechPreviewComponent()
+         generate_speech_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
 
         # Setup the button click events
         speaker_select.change(
@@ -42,7 +53,7 @@ class ExploreUI:
 
         load_speakers_btn.click(
             self.load_speaker_data,
-            inputs=None,
+            inputs=[],
             outputs=[
                 speaker_group,
                 audio_preview_group,
@@ -51,38 +62,33 @@ class ExploreUI:
         )
 
         generate_speech_btn.click(
-            self.generate_speech,
-            inputs=[speaker_select, speech_input_textbox],
+            lambda: gr.Dropdown(interactive=False),
+            outputs=speaker_select
+        ).then(
+            self.do_inference,
+            inputs=[
+                speaker_select,
+                speech_input_textbox
+            ],
             outputs=[
-                audio_preview_group,
+                speaker_select,
                 generate_speech_btn,
                 audio_player
             ]
-        ).then(
-            self.do_inference,
-            inputs=[speaker_select, speech_input_textbox],
-            outputs=[generate_speech_btn, audio_player]
         )
 
     def load_speaker_data(self):
         speakers = self.speakers_handler.get_speaker_names()
+
         return [
             gr.Group(visible=True),
             gr.Group(visible=True),
             gr.Dropdown(
-                label="Speaker",
                 choices=speakers,
                 visible=True,
                 value=speakers[0],
                 interactive=True
             )
-        ]
-
-    def generate_speech(self, speaker, speech_text):
-        return [
-            gr.Group(visible=True),
-            gr.Button(interactive=False),
-            gr.Audio(value=None)
         ]
 
     def do_inference(self, speaker, speech_text):
@@ -95,6 +101,7 @@ class ExploreUI:
             "en", speech_text, gpt_cond_latent, speaker_embedding)
 
         return [
+            gr.Dropdown(interactive=True),
             gr.Button(interactive=True),
             gr.Audio(value=wav_file)
         ]

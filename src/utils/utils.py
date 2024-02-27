@@ -1,5 +1,6 @@
 import os
 import random
+import json
 
 from constants.ui_text import speech_input_defaults
 # Utils functions
@@ -32,3 +33,37 @@ def find_in_tuple_list(item, tuple_list):
             return tuple_item
 
     return None
+
+
+def get_cur_file_dir():
+    return os.path.dirname(os.path.realpath(__file__))
+
+
+def load_changelog_md():
+    script_dir = get_cur_file_dir()
+    change_log_location = os.path.join(script_dir, "../../CHANGELOG.md")
+
+    if os.path.exists(change_log_location):
+        with open(change_log_location, "r") as f:
+            return f.read()
+
+
+def get_latest_changelog_version():
+    changelog = load_changelog_md()
+
+    if changelog:
+        # find first line that starts with #
+        for line in changelog.split("\n"):
+            if line.startswith("# "):
+                return line.split(" ")[1]
+    else:
+        return "NA"
+
+
+def load_readme_md():
+    script_dir = get_cur_file_dir()
+    about_location = os.path.join(script_dir, "../../README.md")
+
+    if os.path.exists(about_location):
+        with open(about_location, "r") as f:
+            return f.read()

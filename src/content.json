@@ -1,0 +1,53 @@
+{
+    "common": {
+        "load_speakers_btn_label": "Load Speakers",
+        "select_speaker_dropdown_label": "Select Speaker",
+        "select_speakers_dropdown_label": "Select Speakers",
+        "generate_speech_btn_label": "Generate Speech",
+        "speech_input_text_label": "Speech Input",
+        "speech_input_text_placeholder": "Enter text to generate speech",
+        "save_speaker_text_label": "Speaker Name",
+        "save_speaker_btn_label": "Save Speaker",
+        "save_speaker_placeholder": "Enter speaker name.",
+        "save_speaker_success_msg": "Speaker saved successfully!",
+        "save_speaker_failure_msg": "Error: Failed to save speaker!"
+    },
+    "setup": {
+        "section_description": "Ensure the XTTS model paths are correctly setup, and the model can be loaded successfully before proceeding (fingers crossed).",
+        "checkpoint_dir_label": "Checkpoint Directory",
+        "vocab_file_label": "Vocabulary File Path",
+        "config_file_label": "Config File Path",
+        "speaker_file_label": "Speaker File Path",
+        "load_model_btn_label": "Validate Files and Load XTTS Model",
+        "model_load_start": "Validating Files and Loading XTTS Model, wish me luck...",
+        "model_load_success": "Model loaded successfully!",
+        "model_load_failure": "Model failed to load!",
+        "speaker_file_error": "Error: Speaker file does not exist. Check speaker file path.",
+        "model_file_paths_invalid": "Error: One or more model files are invalid or do not exist. Check checkpoint directory, vocab file or config file paths."
+    },
+    "explore": {
+        "section_description": "Explore the contents of the XTTS speakers file and preview speaker voices."
+    },
+    "create": {
+        "section_description": "Create a new speaker from one or more reference wavs/mp3s, then save it to the speaker file.",
+        "file_upload_label": "Upload Speaker wavs or mp3s",
+        "create_speaker_embedding_btn_label": "Create Speaker Embedding",
+        "notification_create_embedding": "Creating speaker embedding, try counting some sheep..."
+    },
+    "mix": {
+        "section_description": "Mix and match speakers like a young Voicetor Frankenspeaker, then save them to the speaker file.",
+        "feeling_spicy_btn_label": "Feeling Spicy?",
+        "randomize_weights_btn_label": "Randomize Weights",
+        "reset_weights_btn_label": "Reset Weights"
+    },
+    "export": {
+        "section_description": "Export the speaker file to use in the XTTS model.",
+        "export_file_btn_label": "Export Speaker File"
+    },
+    "changelog": {
+        "section_description": "View the latest changes and updates to the XTTS Speaker Forge App."
+    },
+    "about": {
+        "section_description": "Learn more about XTTS Speaker Forge App."
+    }
+}

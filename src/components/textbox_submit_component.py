@@ -1,13 +1,19 @@
 import gradio as gr
 
-from utils.utils import format_notification
+from utils.utils import format_notification, is_empty_string
 
 
-def TextboxSubmitComponent(textbox_label: str | None = "Input Text", button_label: str = "Submit Value", placeholder: str | None = None, notification_message: str | None = "Success!"):
+def TextboxSubmitComponent(
+        textbox_label: str | None = "Input Text",
+        textbox_value: str | None = None,
+        button_label: str = "Submit Value", placeholder: str | None = None,
+        notification_message: str | None = "Success!"):
+
     with gr.Group(visible=False) as textbox_submit_group:
         with gr.Row():
             textbox_input = gr.Textbox(
                 label=textbox_label,
+                value=textbox_value,
                 placeholder=placeholder,
                 interactive=True,
                 scale=3
@@ -20,5 +26,23 @@ def TextboxSubmitComponent(textbox_label: str | None = "Input Text", button_labe
             notification_message) if notification_message else "",
         visible=False
     )
+
+    textbox_input.change(
+        lambda text: (
+            gr.Button(interactive=False)
+            if is_empty_string(text)
+            else gr.Button(interactive=True)
+        ),
+        inputs=[textbox_input],
+        outputs=[submit_btn]
+    )
+
+    submit_btn.click(lambda: ([
+        gr.Textbox(value=None),
+        gr.Markdown(visible=True)
+    ]), outputs=[
+        textbox_input,
+        notification_text
+    ])
 
     return textbox_submit_group, textbox_input, submit_btn, notification_text
