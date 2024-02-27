@@ -19,6 +19,7 @@ from utils.utils import get_latest_changelog_version
 
 latest_version = get_latest_changelog_version()
 src_dir = pathlib.Path(__file__).parent.resolve()
+assets_dir = src_dir / "assets"
 content_file_path = src_dir / "content.json"
 
 checkpoint_dir = os.environ.get("CHECKPOINT_DIR")
@@ -192,8 +193,10 @@ if __name__ == "__main__":
     with gr.Blocks(css=app_css()) as app:
         # https://i.postimg.cc/rpbTgB2y/b7-Vvp-ETJq-S.gif
         # http://www.gigaglitters.com/created/b7VvpETJqS.gif
+        header_image_path = assets_dir / "images/speaker_forge_glitter.gif"
+
         gr.Markdown("# _XTTS_", elem_classes=['xtts-header'])
-        gr.Image(value="http://www.gigaglitters.com/created/b7VvpETJqS.gif", elem_id="header-image",
+        gr.Image(value=header_image_path, elem_id="header-image",
                  image_mode="RGBA", show_download_button=False, container=False, interactive=False)
         gr.Markdown(f"_v{latest_version}_")
 
