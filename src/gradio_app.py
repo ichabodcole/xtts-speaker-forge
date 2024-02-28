@@ -7,6 +7,7 @@ from content_handler import ContentHandler
 from css import app_css
 from forge_about_view import ForgeAboutView
 from forge_changelog_view import ForgeChangelogView
+from forge_edit_view import ForgeEditView
 from forge_export_view import ForgeExportView
 from model_handler import ModelHandler
 from speakers_handler import SpeakersHandler
@@ -67,6 +68,12 @@ create_view = ForgeCreateView(
 )
 
 mix_view = ForgeMixView(
+    speakers_handler,
+    model_handler,
+    content_handler
+)
+
+edit_view = ForgeEditView(
     speakers_handler,
     model_handler,
     content_handler
@@ -181,6 +188,12 @@ if __name__ == "__main__":
         interactive=False,
         render=False
     )
+    edit_tab = gr.Tab(
+        label="Edit",
+        elem_id="tab-edit",
+        interactive=False,
+        render=False
+    )
     export_tab = gr.Tab(
         label="Export",
         elem_id="tab-export",
@@ -188,7 +201,7 @@ if __name__ == "__main__":
         render=False
     )
 
-    setup_view.set_tabs(explore_tab, create_tab, mix_tab, export_tab)
+    setup_view.set_tabs(explore_tab, create_tab, mix_tab, edit_tab, export_tab)
 
     with gr.Blocks(css=app_css()) as app:
         # https://i.postimg.cc/dDMzdf2g/speaker-forge-glitter.gif
@@ -219,6 +232,10 @@ if __name__ == "__main__":
         with mix_tab.render():
             with gr.Column():
                 mix_view.init_ui()
+
+        with edit_tab.render():
+            with gr.Column():
+                edit_view.init_ui()
 
         with export_tab.render():
             with gr.Column():

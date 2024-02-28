@@ -54,11 +54,10 @@ class ForgeExploreView(ForgeBaseView):
         load_speakers_btn.click(
             self.load_speaker_data,
             inputs=[],
-            outputs=[
-                speaker_group,
-                audio_preview_group,
-                speaker_select
-            ]
+            outputs=speaker_select
+        ).then(
+            lambda: [gr.Group(visible=True), gr.Group(visible=True)],
+            outputs=[speaker_group, audio_preview_group]
         )
 
         generate_speech_btn.click(
@@ -79,17 +78,14 @@ class ForgeExploreView(ForgeBaseView):
 
     def load_speaker_data(self):
         speakers = self.speakers_handler.get_speaker_names()
+        speakers.sort()
 
-        return [
-            gr.Group(visible=True),
-            gr.Group(visible=True),
-            gr.Dropdown(
-                choices=speakers,
-                visible=True,
-                value=speakers[0],
-                interactive=True
-            )
-        ]
+        return gr.Dropdown(
+            choices=speakers,
+            visible=True,
+            value=speakers[0],
+            interactive=True
+        )
 
     def do_inference(self, speaker, speech_text):
         self.speaker_data = self.speakers_handler.get_speaker_data(speaker)

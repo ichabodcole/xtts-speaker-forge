@@ -1,7 +1,7 @@
 import os
 from typing import Tuple
 import torch
-from types_module import EmbeddingPair, SpeakerEmbedding, SpeakerEmbeddingList, SpeakerFileData, SpeakerWeightsList
+from types_module import EmbeddingPair, SpeakerEmbedding, SpeakerEmbeddingList, SpeakerFileData, SpeakerMetadata, SpeakerWeightsList
 from utils.utils import is_valid_file
 from utils.embedding_utils import CombineMethod, average_latents_and_embeddings
 
@@ -32,7 +32,9 @@ class SpeakersHandler:
         return speaker_list
 
     def get_speaker_names(self):
-        return list(self.speakers_file_data.keys())
+        names = list(self.speakers_file_data.keys())
+
+        return names
 
     def get_speaker_data(self, speaker_name):
         return self.speakers_file_data[speaker_name]
@@ -42,6 +44,43 @@ class SpeakersHandler:
             "gpt_cond_latent": gpt_cond_latent,
             "speaker_embedding": speaker_embedding
         }
+
+    def update_speaker_name(self, old_speaker_name, new_speaker_name):
+        if old_speaker_name in self.speakers_file_data:
+            self.speakers_file_data[new_speaker_name] = self.speakers_file_data.pop(
+                old_speaker_name)
+        else:
+            print(f"Speaker {old_speaker_name} does not exist")
+
+    def update_speaker_meta(self, speaker_name, metadata: SpeakerMetadata = None):
+        if speaker_name in self.speakers_file_data:
+
+            print(f"Updating speaker {speaker_name} with metadata {metadata}")
+            if metadata is not None:
+                new_speaker_name = metadata.get("speaker_name", None)
+
+                if new_speaker_name is None:
+                    return
+
+                new_speaker_name = str(new_speaker_name).strip()
+
+                if new_speaker_name != "":
+                    self.speakers_file_data[speaker_name]["metadata"] = metadata
+
+                    print(
+                        f"Updated speaker {speaker_name} with metadata {metadata}")
+
+                    self.update_speaker_name(speaker_name, new_speaker_name)
+        else:
+            print(f"Speaker {speaker_name} does not exist")
+
+    def get_speaker_metadata(self, speaker_name) -> SpeakerMetadata | None:
+        if speaker_name in self.speakers_file_data:
+            speaker = self.speakers_file_data[speaker_name]
+            if "metadata" in speaker:
+                return speaker["metadata"]
+
+        return None
 
     def remove_speaker(self, speaker_name):
         if speaker_name in self.speakers_file_data:

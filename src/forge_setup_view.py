@@ -25,10 +25,11 @@ class ForgeSetupView(ForgeBaseView):
             'setup')
         self.common_content = self.content_handler.get_common_content()
 
-    def set_tabs(self, explore_tab: gr.Tab, create_tab: gr.Tab, mix_tab: gr.Tab, export_tab: gr.Tab):
+    def set_tabs(self, explore_tab: gr.Tab, create_tab: gr.Tab, mix_tab: gr.Tab, edit_tab: gr.Tab, export_tab: gr.Tab):
         self.explore_tab = explore_tab
         self.create_tab = create_tab
         self.mix_tab = mix_tab
+        self.edit_tab = edit_tab
         self.export_tab = export_tab
         self.is_tabs_set = True
 
@@ -102,6 +103,7 @@ class ForgeSetupView(ForgeBaseView):
                     self.explore_tab,
                     self.create_tab,
                     self.mix_tab,
+                    self.edit_tab,
                     self.export_tab,
                 ]
             )
@@ -113,6 +115,7 @@ class ForgeSetupView(ForgeBaseView):
             return [
                 gr.Button(interactive=is_ui_enabled),
                 gr.Markdown(value=message),
+                gr.Tab(interactive=is_ui_enabled),
                 gr.Tab(interactive=is_ui_enabled),
                 gr.Tab(interactive=is_ui_enabled),
                 gr.Tab(interactive=is_ui_enabled),

@@ -40,6 +40,22 @@
         "randomize_weights_btn_label": "Randomize Weights",
         "reset_weights_btn_label": "Reset Weights"
     },
+    "edit": {
+        "section_description": "Edit speaker related attributes or remove speakers from the speaker file.",
+        "edit_speaker_group_label": "Speaker Attributes",
+        "remove_speaker_btn_label": "Remove Speaker (Warning: Irreversible)",
+        "save_changes_btn_label": "Save Attribute Changes",
+        "speaker_name_input_label": "Speaker Name",
+        "gender_input_label": "Speaker Gender",
+        "age_range_input_label": "Speaker Age Range",
+        "accent_input_label": "Speaker Accent",
+        "tonal_quality_input_label": "Speaker Tonal Quality",
+        "style_input_label": "Speaker Style",
+        "genre_input_label": "Speaker Genre",
+        "character_type_input_label": "Speaker Character Type",
+        "description_input_label": "Speaker Description",
+        "description_input_placeholder": "Enter a brief description of the speaker"
+    },
     "export": {
         "section_description": "Export the speaker file to use in the XTTS model.",
         "export_file_btn_label": "Export Speaker File"
