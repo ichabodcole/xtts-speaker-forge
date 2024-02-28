@@ -78,7 +78,6 @@ class ForgeExploreView(ForgeBaseView):
 
     def load_speaker_data(self):
         speakers = self.speakers_handler.get_speaker_names()
-        speakers.sort()
 
         return gr.Dropdown(
             choices=speakers,
@@ -90,11 +89,14 @@ class ForgeExploreView(ForgeBaseView):
     def do_inference(self, speaker, speech_text):
         self.speaker_data = self.speakers_handler.get_speaker_data(speaker)
 
-        gpt_cond_latent = self.speaker_data['gpt_cond_latent']
-        speaker_embedding = self.speaker_data['speaker_embedding']
+        wav_file = None
 
-        wav_file = self.model_handler.run_inference(
-            "en", speech_text, gpt_cond_latent, speaker_embedding)
+        if self.speaker_data:
+            gpt_cond_latent = self.speaker_data['gpt_cond_latent']
+            speaker_embedding = self.speaker_data['speaker_embedding']
+
+            wav_file = self.model_handler.run_inference(
+                "en", speech_text, gpt_cond_latent, speaker_embedding)
 
         return [
             gr.Dropdown(interactive=True),

@@ -1,6 +1,6 @@
 {
     "common": {
-        "load_speakers_btn_label": "Load Speakers",
+        "load_speakers_btn_label": "Load / Update Speakers",
         "select_speaker_dropdown_label": "Select Speaker",
         "select_speakers_dropdown_label": "Select Speakers",
         "generate_speech_btn_label": "Generate Speech",

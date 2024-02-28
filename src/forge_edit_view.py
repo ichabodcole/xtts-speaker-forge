@@ -202,7 +202,6 @@ class ForgeEditView(ForgeBaseView):
     # Event Handlers
     def load_speaker_data(self, selected_speaker=None):
         speakers = self.speakers_handler.get_speaker_names()
-        speakers.sort()
 
         speaker = selected_speaker if selected_speaker in speakers else speakers[0]
 

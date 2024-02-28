@@ -54,6 +54,7 @@ class ForgeMixView(ForgeBaseView):
                         label=self.common_content.get(
                             "select_speakers_dropdown_label"),
                         choices=[],
+                        max_choices=MAX_SPEAKER_CONTROL_COUNT,
                         scale=3,
                         multiselect=True,
                         interactive=True
@@ -65,10 +66,8 @@ class ForgeMixView(ForgeBaseView):
             with gr.Group(visible=False) as speaker_control_group:
                 with gr.Row():
                     for idx in list(range(0, MAX_SPEAKER_CONTROL_COUNT)):
-                        speaker_name = self.get_speaker_name_by_index(idx)
-
                         speaker_control = gr.Slider(
-                            label=speaker_name,
+                            label=UNASSIGNED,
                             minimum=SLIDER_MIN,
                             maximum=SLIDER_MAX,
                             step=SLIDER_STEP,
@@ -111,21 +110,20 @@ class ForgeMixView(ForgeBaseView):
             for speaker_control in self.speaker_control_list:
                 speaker_control.input(
                     self.handle_speaker_slider_change,
-                    inputs=[speaker_control],
+                    inputs=[speaker_control, speaker_select],
                     outputs=[]
                 ).then(
                     lambda: [gr.Audio(value=None), gr.Group(visible=False)],
-                    inputs=[],
                     outputs=[audio_player, speaker_save_group]
                 )
 
             load_speakers_btn.click(
                 self.handle_load_speaker_click,
                 inputs=[],
-                outputs=[
-                    speaker_select_group,
-                    speaker_select
-                ]
+                outputs=speaker_select
+            ).then(
+                lambda: gr.Group(visible=True),
+                outputs=speaker_select_group
             )
 
             speaker_select.change(
@@ -137,9 +135,7 @@ class ForgeMixView(ForgeBaseView):
                 inputs=[speaker_select],
                 outputs=[
                     speaker_control_group,
-                    audio_preview_group,
-                    audio_player,
-                    speaker_save_group,
+                    audio_preview_group
                 ]
             )
 
@@ -153,10 +149,6 @@ class ForgeMixView(ForgeBaseView):
                 self.handle_randomize_speaker_weights_click,
                 inputs=[speaker_select],
                 outputs=self.speaker_control_list
-            ).then(
-                lambda: gr.Audio(value=None),
-                inputs=[],
-                outputs=audio_player
             )
 
             reset_speaker_weights_btn.click(
@@ -165,15 +157,22 @@ class ForgeMixView(ForgeBaseView):
                 outputs=self.speaker_control_list
             )
 
+            gr.on(
+                triggers=[
+                    randomize_speaker_weights_btn.click,
+                    reset_speaker_weights_btn.click,
+                    generate_speech_btn.click,
+                    speaker_select.change
+                ],
+                fn=lambda: [gr.Audio(value=None), gr.Group(visible=False)],
+                outputs=[audio_player, speaker_save_group]
+            )
+
             # TODO: Clean up this mess
             generate_speech_btn.click(
                 self.handle_generate_speech_click,
                 inputs=[],
-                outputs=[
-                    audio_player,
-                    ui_container,
-                    speaker_save_group
-                ]
+                outputs=ui_container
             ).then(
                 self.disable_control_list,
                 inputs=[speaker_select],
@@ -205,59 +204,54 @@ class ForgeMixView(ForgeBaseView):
                 outputs=save_notification_text
             ).then(
                 self.handle_load_speaker_click,
-                outputs=[
-                    speaker_select_group,
-                    speaker_select
-                ]
+                outputs=speaker_select
             )
 
     # Helpers
-    def update_speaker_controls(self, speaker_select):
-        next_list: SliderList = []
+    def update_speaker_controls(self, selected_speakers):
+        self.speaker_weights = self.filter_speaker_weights(selected_speakers)
 
-        self.speaker_weights = self.filter_speaker_weights(speaker_select)
+        def calculate_value(speaker_name: str) -> float:
+            value = self.get_spicy_value() if self.is_spicy else self.get_speaker_weight(speaker_name)
+            # Side effect: update speaker weights
+            self.update_speaker_weights(speaker_name, value)
 
-        for idx, speaker_control in enumerate(self.speaker_control_list):
-            speaker_name = self.get_speaker_name_by_index(idx)
+            return value
 
-            if speaker_name in speaker_select:
-                speaker_weight = self.get_speaker_weight(speaker_name)
-                value = self.get_spicy_value() if self.is_spicy else speaker_weight
-                self.update_speaker_weights(speaker_name, value)
+        active_slider_props = {
+            "visible": True
+        }
 
-                slider = gr.Slider(
-                    label=speaker_name,
-                    visible=True,
-                    value=value
-                )
-            else:
-                slider = gr.Slider(visible=False, value=0)
+        inactive_slider_props = {
+            "visible": False,
+            "value": 0
+        }
 
-            next_list.append(slider)
+        next_sliders = self.update_slider_props(
+            selected_speakers,
+            active_slider_props,
+            inactive_slider_props,
+            valueFn=calculate_value
+        )
 
         self.is_spicy = False
 
-        return next_list
+        return next_sliders
 
     def handle_load_speaker_click(self):
         self.speaker_name_list = self.speakers_handler.get_speaker_names()
 
-        return [
-            gr.Group(visible=True),
-            gr.Dropdown(
-                choices=self.speaker_name_list,
-                visible=True
-            )
-        ]
+        return gr.Dropdown(
+            choices=self.speaker_name_list,
+            visible=True
+        )
 
     def handle_speaker_select_change(self, selected_speakers):
         is_valid_count = len(selected_speakers) > 1
 
         return [
             gr.Group(visible=is_valid_count),
-            gr.Group(visible=is_valid_count),
-            gr.Audio(value=None),
-            gr.Group(visible=False)
+            gr.Group(visible=is_valid_count)
         ]
 
     def handle_spicy_click(self):
@@ -266,63 +260,54 @@ class ForgeMixView(ForgeBaseView):
         speakers = choices(self.speaker_name_list, k=speaker_select_count)
         return gr.Dropdown(value=speakers)
 
-    def handle_speaker_slider_change(self, slider_value, evt: gr.EventData):
-        slider_index = evt.target.elem_id
-        speaker_name = self.speaker_name_list[int(slider_index)]
+    def handle_speaker_slider_change(self, slider_value, selected_speakers, evt: gr.EventData):
+        slider_index = int(evt.target.elem_id)
+        slider_speaker = selected_speakers[slider_index]
 
-        self.update_speaker_weights(speaker_name, slider_value)
+        self.update_speaker_weights(slider_speaker, slider_value)
 
     def handle_generate_speech_click(self):
         self.speaker_embedding = self.speakers_handler.create_speaker_embedding_from_mix(
             self.speaker_weights)
 
-        # print("generating speech with speaker_weights", self.speaker_weights)
-
-        return [
-            gr.Audio(value=None),
-            gr.Column(elem_classes=["ui-disabled"]),
-            gr.Group(visible=False)
-        ]
+        return gr.Column(elem_classes=["ui-disabled"])
 
     def handle_randomize_speaker_weights_click(self, selected_speakers: SpeakerNameList):
-        next_slider_list: SliderList = []
         self.randomize_speaker_weights()
 
-        for idx, speaker_control in enumerate(self.speaker_control_list):
-            speaker_name = self.get_speaker_name_by_index(idx)
+        active_slider_props = {
+            "visible": True,
+            "value": 1
+        }
 
-            if speaker_name in selected_speakers:
-                speaker_weight = self.get_speaker_weight(speaker_name)
-                slider = gr.Slider(
-                    label=speaker_name,
-                    visible=True,
-                    value=speaker_weight
-                )
-            else:
-                slider = gr.Slider(visible=False, value=0)
+        inactive_slider_props = {
+            "visible": False,
+            "value": 0
+        }
 
-            next_slider_list.append(slider)
-
-        return next_slider_list
+        return self.update_slider_props(
+            selected_speakers,
+            active_slider_props,
+            inactive_slider_props,
+            valueFn=self.get_speaker_weight
+        )
 
     def handle_reset_speaker_weights_click(self, selected_speakers: SpeakerNameList):
-        next_slider_list: SliderList = []
+        active_slider_props = {
+            "visible": True,
+            "value": 1
+        }
 
-        for idx, speaker_control in enumerate(self.speaker_control_list):
-            speaker_name = self.get_speaker_name_by_index(idx)
+        inactive_slider_props = {
+            "visible": False,
+            "value": 0
+        }
 
-            if speaker_name in selected_speakers:
-                slider = gr.Slider(
-                    label=speaker_name,
-                    visible=True,
-                    value=1
-                )
-            else:
-                slider = gr.Slider(visible=False, value=0)
-
-            next_slider_list.append(slider)
-
-        return next_slider_list
+        return self.update_slider_props(
+            selected_speakers,
+            active_slider_props,
+            inactive_slider_props
+        )
 
     def handle_save_speaker_click(self, speaker_name):
         gpt_cond_latent = self.speaker_embedding["gpt_cond_latent"]
@@ -339,13 +324,21 @@ class ForgeMixView(ForgeBaseView):
         )
 
     def do_inference(self, speech_input_text):
-        wav_file = self.model_handler.run_inference(
-            'en',
-            speech_input_text,
-            self.speaker_embedding["gpt_cond_latent"],
-            self.speaker_embedding["speaker_embedding"],
-            self.speaker_weights_to_file_name(),
-        )
+        wav_file = None
+        gpt_cond_latent = self.speaker_embedding.get("gpt_cond_latent", None)
+        speaker_embedding = self.speaker_embedding.get(
+            "speaker_embedding", None)
+
+        if speaker_embedding is not None and gpt_cond_latent is not None:
+            wav_file = self.model_handler.run_inference(
+                lang='en',
+                tts_text=speech_input_text,
+                gpt_cond_latent=gpt_cond_latent,
+                speaker_embedding=speaker_embedding,
+                file_name=self.speaker_weights_to_file_name()
+            )
+        else:
+            print("Speaker embeddings are not set")
 
         return [
             gr.Button(interactive=True),
@@ -355,38 +348,36 @@ class ForgeMixView(ForgeBaseView):
         ]
 
     def disable_control_list(self, selected_speakers: SpeakerNameList):
-        next_slider_list: SliderList = []
+        active_slider_props = {
+            "interactive": False
+        }
 
-        for idx, speaker_control in enumerate(self.speaker_control_list):
-            speaker_name = self.get_speaker_name_by_index(idx)
+        inactive_slider_props = {
+            "visible": False,
+            "value": 0
+        }
 
-            if speaker_name in selected_speakers:
-                slider = gr.Slider(
-                    interactive=False
-                )
-            else:
-                slider = gr.Slider(visible=False, value=0)
-
-            next_slider_list.append(slider)
-
-        return next_slider_list
+        return self.update_slider_props(
+            selected_speakers,
+            active_slider_props,
+            inactive_slider_props
+        )
 
     def enable_control_list(self, selected_speakers: SpeakerNameList):
-        next_slider_list: SliderList = []
+        active_slider_props = {
+            "interactive": True
+        }
 
-        for idx, speaker_control in enumerate(self.speaker_control_list):
-            speaker_name = self.get_speaker_name_by_index(idx)
+        inactive_slider_props = {
+            "visible": False,
+            "value": 0
+        }
 
-            if speaker_name in selected_speakers:
-                slider = gr.Slider(
-                    interactive=True
-                )
-            else:
-                slider = gr.Slider(visible=False, value=0)
-
-            next_slider_list.append(slider)
-
-        return next_slider_list
+        return self.update_slider_props(
+            selected_speakers,
+            active_slider_props,
+            inactive_slider_props
+        )
 
     # Converts speaker weights to a file name string
     def speaker_weights_to_file_name(self):
@@ -421,5 +412,33 @@ class ForgeMixView(ForgeBaseView):
         for speaker_weight in self.speaker_weights:
             speaker_weight["weight"] = self.get_spicy_value()
 
-    def get_speaker_name_by_index(self, index: int):
-        return self.speaker_name_list[index] if index < len(self.speaker_name_list) else UNASSIGNED
+    def update_slider_props(
+        self,
+        selected_speakers: SpeakerNameList,
+        active_slider_props: dict,
+        inactive_slider_props: dict,
+        valueFn=None
+    ):
+        next_slider_list: SliderList = []
+
+        for idx, speaker_control in enumerate(self.speaker_control_list):
+            if idx < len(selected_speakers):
+                speaker_name = selected_speakers[idx]
+
+                if valueFn:
+                    value = valueFn(speaker_name)
+                    active_slider_props["value"] = value
+
+                slider = gr.Slider(
+                    label=speaker_name,
+                    **active_slider_props,
+                )
+            else:
+                slider = gr.Slider(
+                    label=UNASSIGNED,
+                    **inactive_slider_props
+                )
+
+            next_slider_list.append(slider)
+
+        return next_slider_list

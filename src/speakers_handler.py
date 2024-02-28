@@ -33,11 +33,15 @@ class SpeakersHandler:
 
     def get_speaker_names(self):
         names = list(self.speakers_file_data.keys())
+        names.sort()
 
         return names
 
     def get_speaker_data(self, speaker_name):
-        return self.speakers_file_data[speaker_name]
+        if speaker_name in self.speakers_file_data:
+            return self.speakers_file_data[speaker_name]
+
+        return None
 
     def add_speaker(self, speaker_name, gpt_cond_latent, speaker_embedding, output_path=None):
         self.speakers_file_data[speaker_name] = {
@@ -97,6 +101,8 @@ class SpeakersHandler:
     def create_speaker_embedding_from_mix(self, speaker_weights: SpeakerWeightsList, combine_method: CombineMethod = CombineMethod.MEAN) -> SpeakerEmbedding:
         latent_embedding_pairs = []
         weights = []
+
+        # print("create_speaker_embedding_from_mix:", self.speaker_weights)
 
         # Map speaker weights for easy lookup
         speaker_weight_map = {

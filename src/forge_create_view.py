@@ -30,9 +30,9 @@ class ForgeCreateView(ForgeBaseView):
         self.common_content = self.content_handler.get_common_content()
 
     def init_ui(self):
-
         section_description = SectionDescriptionComponent(
             value=self.section_content.get("section_description"))
+
         with gr.Column() as ui_container:
             with gr.Group() as speaker_upload_group:
                 file_uploader = gr.File(
@@ -156,14 +156,17 @@ class ForgeCreateView(ForgeBaseView):
         ]
 
     def do_inference(self, speech_text):
-        wav_file = "https://www2.cs.uic.edu/~i101/SoundFiles/StarWars3.wav"
+        wav_file = None
 
-        if (self.gpt_cond_latent is None or self.speaker_embedding is None):
+        if (self.gpt_cond_latent is not None and self.speaker_embedding is not None):
+            wav_file = self.model_handler.run_inference(
+                lang="en",
+                tts_text=speech_text,
+                gpt_cond_latent=self.gpt_cond_latent,
+                speaker_embedding=self.speaker_embedding
+            )
+        else:
             print("Speaker embeddings are not set")
-            return
-
-        wav_file = self.model_handler.run_inference(
-            "en", speech_text, self.gpt_cond_latent, self.speaker_embedding)
 
         return [
             gr.Button(interactive=True),
