@@ -1,7 +1,8 @@
 import os
-from typing import Tuple
+import pathlib
+import time
 import torch
-from types_module import EmbeddingPair, SpeakerEmbedding, SpeakerEmbeddingList, SpeakerFileData, SpeakerMetadata, SpeakerWeightsList
+from types_module import SpeakerEmbedding, SpeakerEmbeddingList, SpeakerFileData, SpeakerMetadata, SpeakerWeightsList
 from utils.utils import is_valid_file
 from utils.embedding_utils import CombineMethod, average_latents_and_embeddings
 
@@ -58,8 +59,6 @@ class SpeakersHandler:
 
     def update_speaker_meta(self, speaker_name, metadata: SpeakerMetadata = None):
         if speaker_name in self.speakers_file_data:
-
-            print(f"Updating speaker {speaker_name} with metadata {metadata}")
             if metadata is not None:
                 new_speaker_name = metadata.get("speaker_name", None)
 
@@ -71,8 +70,7 @@ class SpeakersHandler:
                 if new_speaker_name != "":
                     self.speakers_file_data[speaker_name]["metadata"] = metadata
 
-                    print(
-                        f"Updated speaker {speaker_name} with metadata {metadata}")
+                    # print(f"Updated speaker {speaker_name} with metadata {metadata}")
 
                     self.update_speaker_name(speaker_name, new_speaker_name)
         else:
@@ -135,3 +133,23 @@ class SpeakersHandler:
         else:
             print("Speaker file does not exist")
             raise FileExistsError("Speaker file does not exist")
+
+    def create_speaker_file_from_selected_speakers(self, selected_speakers: list[str]):
+        speaker_file_data = {}
+        time_seconds = int(time.time())
+
+        for speaker in selected_speakers:
+            if speaker in self.speakers_file_data:
+                speaker_file_data[speaker] = self.speakers_file_data[speaker]
+
+        speaker_file_dir = pathlib.Path(self.speakers_file).parent.resolve()
+
+        out_path = os.path.join(
+            speaker_file_dir, 'speaker_forge', f"speakers_xtts_sf_{str(time_seconds)}.pth")
+
+        if not os.path.exists(os.path.dirname(out_path)):
+            os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
+        torch.save(speaker_file_data, out_path)
+
+        return out_path

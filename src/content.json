@@ -59,7 +59,11 @@
     },
     "export": {
         "section_description": "Export the speaker file to use in the XTTS model.",
-        "export_file_btn_label": "Export Speaker File"
+        "speaker_checkbox_group_label": "Select Speakers to Export",
+        "export_file_btn_label": "Export Speaker File",
+        "select_all_btn_label": "Select All",
+        "deselect_all_btn_label": "Deselect All",
+        "download_file_label": "Download Speaker File"
     },
     "changelog": {
         "section_description": "View the latest changes and updates to the XTTS Speaker Forge App."

@@ -9,7 +9,7 @@ from forge_base_view import ForgeBaseView
 from model_handler import ModelHandler
 from components.speaker_preview_component import SpeechPreviewComponent
 from speakers_handler import SpeakersHandler
-from random import choices, randrange
+from random import randrange
 from types_module import SliderList, SpeakerEmbedding, SpeakerNameList, SpeakerWeightsList
 from utils.utils import format_notification
 
@@ -257,8 +257,13 @@ class ForgeMixView(ForgeBaseView):
 
     def handle_spicy_click(self):
         self.is_spicy = True
-        speaker_select_count = randrange(2, 6)
-        speakers = choices(self.speaker_name_list, k=speaker_select_count)
+        max_speakers = min(
+            len(self.speaker_name_list),
+            MAX_SPEAKER_CONTROL_COUNT
+        )
+        speaker_select_count = randrange(2, max_speakers + 1)
+        speakers = random.sample(self.speaker_name_list, speaker_select_count)
+
         return gr.Dropdown(value=speakers)
 
     def handle_speaker_slider_change(self, slider_value, selected_speakers, evt: gr.EventData):

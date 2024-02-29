@@ -40,7 +40,11 @@ class ModelHandler:
         print("Loading XTTS model! ")
 
         self.model.load_checkpoint(
-            config, checkpoint_dir=self.checkpoint_dir, vocab_path=self.vocab_file, use_deepspeed=False)
+            config,
+            checkpoint_dir=self.checkpoint_dir,
+            vocab_path=self.vocab_file,
+            use_deepspeed=False
+        )
         if torch.cuda.is_available():
             self.model.cuda()
 
