@@ -1,12 +1,12 @@
-from services.content_handler import ContentHandler
-from services.model_handler import ModelHandler
-from services.speakers_handler import SpeakersHandler
+from services.content_manager_service import ContentManagerService
+from services.model_manager_service import ModelManagerService
+from services.speaker_manager_service import SpeakerManagerService
 from abc import ABC, abstractmethod
 
 
 class ForgeBaseView(ABC):
 
-    def __init__(self, speakers_handler: SpeakersHandler, model_handler: ModelHandler, content_handler: ContentHandler):
+    def __init__(self, speakers_handler: SpeakerManagerService, model_handler: ModelManagerService, content_handler: ContentManagerService):
         self.model_handler = model_handler
         self.speakers_handler = speakers_handler
         self.content_handler = content_handler

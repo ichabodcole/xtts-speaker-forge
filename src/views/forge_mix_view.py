@@ -3,11 +3,11 @@ import gradio as gr
 from components.section_description_component import SectionDescriptionComponent
 from components.textbox_submit_component import TextboxSubmitComponent
 from constants.common import MAX_SPEAKER_CONTROL_COUNT
-from services.content_handler import ContentHandler
+from services.content_manager_service import ContentManagerService
 from views.forge_base_view import ForgeBaseView
-from services.model_handler import ModelHandler
+from services.model_manager_service import ModelManagerService
 from components.speaker_preview_component import SpeechPreviewComponent
-from services.speakers_handler import SpeakersHandler
+from services.speaker_manager_service import SpeakerManagerService
 from random import randrange
 from types_module import SliderList, SpeakerEmbedding, SpeakerNameList, SpeakerWeightsList
 from utils.utils import format_notification, is_empty_string
@@ -29,9 +29,9 @@ class ForgeMixView(ForgeBaseView):
 
     def __init__(
         self,
-        speaker_handler: SpeakersHandler,
-        model_handler: ModelHandler,
-        content_handler: ContentHandler
+        speaker_handler: SpeakerManagerService,
+        model_handler: ModelManagerService,
+        content_handler: ContentManagerService
     ):
         super().__init__(speaker_handler, model_handler, content_handler)
         self.speaker_name_list = self.speakers_handler.get_speaker_names()

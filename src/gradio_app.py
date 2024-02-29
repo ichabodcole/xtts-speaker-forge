@@ -3,14 +3,14 @@ import logging
 import argparse
 import sys
 import gradio as gr
-from services.content_handler import ContentHandler
+from services.content_manager_service import ContentManagerService
 from css import app_css
 from views.forge_about_view import ForgeAboutView
 from views.forge_changelog_view import ForgeChangelogView
 from views.forge_edit_view import ForgeEditView
 from views.forge_export_view import ForgeExportView
-from services.model_handler import ModelHandler
-from services.speakers_handler import SpeakersHandler
+from services.model_manager_service import ModelManagerService
+from services.speaker_manager_service import SpeakerManagerService
 import pathlib
 from views.forge_create_view import ForgeCreateView
 from views.forge_explore_view import ForgeExploreView
@@ -38,11 +38,11 @@ if not speaker_file:
     raise ValueError("SPEAKER_PATH environment variable not set")
 
 
-content_handler = ContentHandler(content_file_path)
-speakers_handler = SpeakersHandler()
+content_handler = ContentManagerService(content_file_path)
+speakers_handler = SpeakerManagerService()
 speakers_handler.set_speaker_file(speaker_file)
 
-model_handler = ModelHandler()
+model_handler = ModelManagerService()
 setup_view = ForgeSetupView(
     speakers_handler,
     model_handler,

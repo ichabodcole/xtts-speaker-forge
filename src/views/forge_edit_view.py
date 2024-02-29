@@ -2,10 +2,10 @@ import gradio as gr
 from components.notification_component import NotificationComponent
 from components.section_description_component import SectionDescriptionComponent
 from constants.common import ACCENT_CHOICES, AGE_RANGE_CHOICES, CHARACTER_TYPE_CHOICES, GENDER_CHOICES, GENRE_CHOICES, STYLE_CHOICES, TONAL_CHOICES
-from services.content_handler import ContentHandler
+from services.content_manager_service import ContentManagerService
 from views.forge_base_view import ForgeBaseView
-from services.model_handler import ModelHandler
-from services.speakers_handler import SpeakersHandler
+from services.model_manager_service import ModelManagerService
+from services.speaker_manager_service import SpeakerManagerService
 from types_module import SpeakerMetadata
 from utils.utils import is_empty_string
 
@@ -18,9 +18,9 @@ class ForgeEditView(ForgeBaseView):
 
     def __init__(
         self,
-        speaker_handler: SpeakersHandler,
-        model_handler: ModelHandler,
-        content_handler: ContentHandler
+        speaker_handler: SpeakerManagerService,
+        model_handler: ModelManagerService,
+        content_handler: ContentManagerService
     ):
         super().__init__(speaker_handler, model_handler, content_handler)
         self.section_content = self.content_handler.get_section_content(

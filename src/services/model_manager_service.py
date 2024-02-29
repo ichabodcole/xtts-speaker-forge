@@ -8,7 +8,7 @@ import torchaudio
 from utils.utils import is_valid_file_list
 
 
-class ModelHandler:
+class ModelManagerService:
     def __init__(self):
         self.model = None
 

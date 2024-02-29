@@ -7,7 +7,7 @@ from utils.utils import is_valid_file
 from utils.embedding_utils import CombineMethod, average_latents_and_embeddings
 
 
-class SpeakersHandler:
+class SpeakerManagerService:
     speakers_file_data: SpeakerFileData = None
     speakers_file: str = None
 

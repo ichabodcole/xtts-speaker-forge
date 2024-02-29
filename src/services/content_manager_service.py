@@ -1,7 +1,7 @@
 import json
 
 
-class ContentHandler:
+class ContentManagerService:
     content: dict
 
     def __init__(self, content_file_path: str):
