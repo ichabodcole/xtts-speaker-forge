@@ -6,10 +6,10 @@ from abc import ABC, abstractmethod
 
 class ForgeBaseView(ABC):
 
-    def __init__(self, speakers_handler: SpeakerManagerService, model_handler: ModelManagerService, content_handler: ContentManagerService):
-        self.model_handler = model_handler
+    def __init__(self, speakers_handler: SpeakerManagerService, model_service: ModelManagerService, content_service: ContentManagerService):
+        self.model_service = model_service
         self.speakers_handler = speakers_handler
-        self.content_handler = content_handler
+        self.content_service = content_service
 
     @abstractmethod
     def init_ui(self):

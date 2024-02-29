@@ -2,16 +2,17 @@ import random
 import gradio as gr
 from components.section_description_component import SectionDescriptionComponent
 from components.textbox_submit_component import TextboxSubmitComponent
-from constants.common import MAX_SPEAKER_CONTROL_COUNT
 from services.content_manager_service import ContentManagerService
 from views.forge_base_view import ForgeBaseView
 from services.model_manager_service import ModelManagerService
 from components.speaker_preview_component import SpeechPreviewComponent
 from services.speaker_manager_service import SpeakerManagerService
 from random import randrange
-from types_module import SliderList, SpeakerEmbedding, SpeakerNameList, SpeakerWeightsList
+from types_module import SliderList, SpeakerData, SpeakerNameList, SpeakerWeightsList
 from utils.utils import format_notification, is_empty_string
 
+MAX_SPEAKER_CONTROL_COUNT = 10
+MAX_SPICY_SPEAKER_COUNT = 5
 SLIDER_MAX = 2
 SLIDER_MIN = 0
 SLIDER_STEP = 0.1
@@ -22,21 +23,21 @@ class ForgeMixView(ForgeBaseView):
     speaker_name_list: SpeakerNameList = []
     speaker_control_list: SliderList = []
     speaker_weights: SpeakerWeightsList = []
-    speaker_embedding: SpeakerEmbedding = None
+    speaker_embedding: SpeakerData = None
     is_spicy = False
     section_content: dict
     common_content: dict
 
     def __init__(
         self,
-        speaker_handler: SpeakerManagerService,
-        model_handler: ModelManagerService,
-        content_handler: ContentManagerService
+        speaker_service: SpeakerManagerService,
+        model_service: ModelManagerService,
+        content_service: ContentManagerService
     ):
-        super().__init__(speaker_handler, model_handler, content_handler)
+        super().__init__(speaker_service, model_service, content_service)
         self.speaker_name_list = self.speakers_handler.get_speaker_names()
-        self.section_content = self.content_handler.get_section_content("mix")
-        self.common_content = self.content_handler.get_common_content()
+        self.section_content = self.content_service.get_section_content("mix")
+        self.common_content = self.content_service.get_common_content()
 
     def init_ui(self):
 
@@ -90,7 +91,7 @@ class ForgeMixView(ForgeBaseView):
              audio_player,
              speech_input_textbox,
              language_select,
-             generate_speech_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
+             generate_speech_btn) = SpeechPreviewComponent(self.content_service.get_common_content())
 
             # SAVE SPEAKER COMPONENT
             (speaker_save_group,
@@ -258,7 +259,7 @@ class ForgeMixView(ForgeBaseView):
         self.is_spicy = True
         max_speakers = min(
             len(self.speaker_name_list),
-            MAX_SPEAKER_CONTROL_COUNT
+            MAX_SPICY_SPEAKER_COUNT
         )
         speaker_select_count = randrange(2, max_speakers + 1)
         speakers = random.sample(self.speaker_name_list, speaker_select_count)
@@ -335,7 +336,7 @@ class ForgeMixView(ForgeBaseView):
             "speaker_embedding", None)
 
         if speaker_embedding is not None and gpt_cond_latent is not None:
-            wav_file = self.model_handler.run_inference(
+            wav_file = self.model_service.run_inference(
                 lang=language,
                 tts_text=speech_input_text,
                 gpt_cond_latent=gpt_cond_latent,

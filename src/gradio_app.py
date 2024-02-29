@@ -14,6 +14,7 @@ from services.speaker_manager_service import SpeakerManagerService
 import pathlib
 from views.forge_create_view import ForgeCreateView
 from views.forge_explore_view import ForgeExploreView
+from views.forge_import_view import ForgeImportView
 from views.forge_setup_view import ForgeSetupView
 from views.forge_mix_view import ForgeMixView
 from utils.utils import get_latest_changelog_version
@@ -38,15 +39,15 @@ if not speaker_file:
     raise ValueError("SPEAKER_PATH environment variable not set")
 
 
-content_handler = ContentManagerService(content_file_path)
+content_service = ContentManagerService(content_file_path)
 speakers_handler = SpeakerManagerService()
-speakers_handler.set_speaker_file(speaker_file)
+# speakers_handler.set_speaker_file(speaker_file)
 
-model_handler = ModelManagerService()
+model_service = ModelManagerService()
 setup_view = ForgeSetupView(
     speakers_handler,
-    model_handler,
-    content_handler
+    model_service,
+    content_service
 )
 setup_view.set_file_paths(
     checkpoint_dir,
@@ -57,44 +58,50 @@ setup_view.set_file_paths(
 
 explore_view = ForgeExploreView(
     speakers_handler,
-    model_handler,
-    content_handler
+    model_service,
+    content_service
 )
 
 create_view = ForgeCreateView(
     speakers_handler,
-    model_handler,
-    content_handler
+    model_service,
+    content_service
 )
 
 mix_view = ForgeMixView(
     speakers_handler,
-    model_handler,
-    content_handler
+    model_service,
+    content_service
 )
 
 edit_view = ForgeEditView(
     speakers_handler,
-    model_handler,
-    content_handler
+    model_service,
+    content_service
+)
+
+import_view = ForgeImportView(
+    speakers_handler,
+    model_service,
+    content_service
 )
 
 export_view = ForgeExportView(
     speakers_handler,
-    model_handler,
-    content_handler
+    model_service,
+    content_service
 )
 
 changelog_view = ForgeChangelogView(
     speakers_handler,
-    model_handler,
-    content_handler
+    model_service,
+    content_service
 )
 
 about_view = ForgeAboutView(
     speakers_handler,
-    model_handler,
-    content_handler
+    model_service,
+    content_service
 )
 
 
@@ -194,6 +201,12 @@ if __name__ == "__main__":
         interactive=False,
         render=False
     )
+    import_tab = gr.Tab(
+        label="Import",
+        elem_id="tab-import",
+        interactive=False,
+        render=False
+    )
     export_tab = gr.Tab(
         label="Export",
         elem_id="tab-export",
@@ -201,7 +214,14 @@ if __name__ == "__main__":
         render=False
     )
 
-    setup_view.set_tabs(explore_tab, create_tab, mix_tab, edit_tab, export_tab)
+    setup_view.set_tabs(
+        explore_tab,
+        create_tab,
+        mix_tab,
+        edit_tab,
+        import_tab,
+        export_tab
+    )
 
     with gr.Blocks(css=app_css()) as app:
         # https://i.postimg.cc/dDMzdf2g/speaker-forge-glitter.gif
@@ -236,6 +256,10 @@ if __name__ == "__main__":
         with edit_tab.render():
             with gr.Column():
                 edit_view.init_ui()
+
+        with import_tab.render():
+            with gr.Column():
+                import_view.init_ui()
 
         with export_tab.render():
             with gr.Column():

@@ -1,3 +1,6 @@
+import os
+import shutil
+import tempfile
 import gradio as gr
 from components.notification_component import NotificationComponent
 from components.section_description_component import SectionDescriptionComponent
@@ -16,20 +19,21 @@ class ForgeSetupView(ForgeBaseView):
 
     def __init__(
         self,
-        speaker_handler: SpeakerManagerService,
-        model_handler: ModelManagerService,
-        content_handler: ContentManagerService
+        speaker_service: SpeakerManagerService,
+        model_service: ModelManagerService,
+        content_service: ContentManagerService
     ):
-        super().__init__(speaker_handler, model_handler, content_handler)
-        self.section_content = self.content_handler.get_section_content(
+        super().__init__(speaker_service, model_service, content_service)
+        self.section_content = self.content_service.get_section_content(
             'setup')
-        self.common_content = self.content_handler.get_common_content()
+        self.common_content = self.content_service.get_common_content()
 
-    def set_tabs(self, explore_tab: gr.Tab, create_tab: gr.Tab, mix_tab: gr.Tab, edit_tab: gr.Tab, export_tab: gr.Tab):
+    def set_tabs(self, explore_tab: gr.Tab, create_tab: gr.Tab, mix_tab: gr.Tab, edit_tab: gr.Tab, import_tab: gr.Tab, export_tab: gr.Tab):
         self.explore_tab = explore_tab
         self.create_tab = create_tab
         self.mix_tab = mix_tab
         self.edit_tab = edit_tab
+        self.import_tab = import_tab
         self.export_tab = export_tab
         self.is_tabs_set = True
 
@@ -104,6 +108,7 @@ class ForgeSetupView(ForgeBaseView):
                     self.create_tab,
                     self.mix_tab,
                     self.edit_tab,
+                    self.import_tab,
                     self.export_tab,
                 ]
             )
@@ -119,11 +124,14 @@ class ForgeSetupView(ForgeBaseView):
                 gr.Tab(interactive=is_ui_enabled),
                 gr.Tab(interactive=is_ui_enabled),
                 gr.Tab(interactive=is_ui_enabled),
+                gr.Tab(interactive=is_ui_enabled),
                 gr.Tab(interactive=is_ui_enabled)
             ]
 
         try:
-            self.speakers_handler.set_speaker_file(speaker_file)
+            if (self.speakers_handler.speakers_file is None):
+                temp_file_path = self.create_temp_speaker_file(speaker_file)
+                self.speakers_handler.set_speaker_file(temp_file_path)
         except Exception as e:
             md_message = format_notification(
                 self.section_content.get("speaker_file_error"))
@@ -131,7 +139,7 @@ class ForgeSetupView(ForgeBaseView):
             return response(md_message, is_ui_enabled)
 
         try:
-            self.model_handler.set_file_paths(
+            self.model_service.set_file_paths(
                 checkpoint_dir,
                 vocab_file,
                 config_file
@@ -143,7 +151,7 @@ class ForgeSetupView(ForgeBaseView):
             return response(md_message, is_ui_enabled)
 
         try:
-            self.model_handler.load_model()
+            self.model_service.load_model()
             md_message = format_notification(
                 self.section_content.get("model_load_success"))
             is_ui_enabled = True
@@ -153,3 +161,15 @@ class ForgeSetupView(ForgeBaseView):
             md_message = format_notification(f"Error: {e}")
             is_ui_enabled = False
             return response(md_message, is_ui_enabled)
+
+    def create_temp_speaker_file(self, speaker_file):
+        if os.path.exists(speaker_file):
+            with tempfile.NamedTemporaryFile(suffix=".pth", delete=False) as temp_file:
+                temp_file_name = temp_file.name
+
+                file_path = shutil.copy(speaker_file, temp_file_name)
+
+                return file_path
+
+        print("Speaker file does not exist")
+        return None

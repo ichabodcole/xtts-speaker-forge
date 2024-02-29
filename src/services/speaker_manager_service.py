@@ -2,7 +2,7 @@ import os
 import pathlib
 import time
 import torch
-from types_module import SpeakerEmbedding, SpeakerEmbeddingList, SpeakerFileData, SpeakerMetadata, SpeakerWeightsList
+from types_module import SpeakerData, SpeakerEmbeddingList, SpeakerFileData, SpeakerMetadata, SpeakerWeightsList
 from utils.utils import is_valid_file
 from utils.embedding_utils import CombineMethod, average_latents_and_embeddings
 
@@ -15,24 +15,17 @@ class SpeakerManagerService:
         if not is_valid_file(speakers_file):
             raise FileExistsError("Speaker file does not exist")
 
+        print("speaker_file", speakers_file)
+
         self.speakers_file = speakers_file
         self.speakers_file_data = self.load_speaker_file_data()
 
         return self.speakers_file
 
-    def get_speakers_list(self):
-        speaker_list: SpeakerEmbeddingList = []
-
-        # Get keys from the speaker embeddings
-        for speaker in self.speakers_file_data:
-            speaker_list.append({
-                "id": speaker,
-                **self.speakers_file_data[speaker]
-            })
-
-        return speaker_list
-
     def get_speaker_names(self):
+        if self.speakers_file_data is None:
+            return []
+
         names = list(self.speakers_file_data.keys())
         names.sort()
 
@@ -44,10 +37,17 @@ class SpeakerManagerService:
 
         return None
 
-    def add_speaker(self, speaker_name, gpt_cond_latent, speaker_embedding, output_path=None):
+    def add_speaker(
+        self,
+        speaker_name,
+        gpt_cond_latent,
+        speaker_embedding,
+        metadata: SpeakerMetadata = None
+    ):
         self.speakers_file_data[speaker_name] = {
             "gpt_cond_latent": gpt_cond_latent,
-            "speaker_embedding": speaker_embedding
+            "speaker_embedding": speaker_embedding,
+            "metadata": metadata
         }
 
     def update_speaker_name(self, old_speaker_name, new_speaker_name):
@@ -96,7 +96,7 @@ class SpeakerManagerService:
         else:
             torch.save(self.speakers_file_data, self.speakers_file)
 
-    def create_speaker_embedding_from_mix(self, speaker_weights: SpeakerWeightsList, combine_method: CombineMethod = CombineMethod.MEAN) -> SpeakerEmbedding:
+    def create_speaker_embedding_from_mix(self, speaker_weights: SpeakerWeightsList, combine_method: CombineMethod = CombineMethod.MEAN) -> SpeakerData:
         latent_embedding_pairs = []
         weights = []
 
@@ -133,6 +133,21 @@ class SpeakerManagerService:
         else:
             print("Speaker file does not exist")
             raise FileExistsError("Speaker file does not exist")
+
+    def import_speakers_from_file(self, file_path: str) -> SpeakerFileData | None:
+        if not is_valid_file(file_path):
+            raise FileExistsError("Speaker file does not exist")
+
+        try:
+            speaker_data = torch.load(file_path)
+            if type(speaker_data) == dict:
+                return speaker_data
+            else:
+                print("Invalid speaker file")
+                return None
+        except Exception as e:
+            print(f"Error loading speaker file: {e}")
+            return None
 
     def create_speaker_file_from_selected_speakers(self, selected_speakers: list[str]):
         speaker_file_data = {}

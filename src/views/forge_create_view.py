@@ -19,14 +19,14 @@ class ForgeCreateView(ForgeBaseView):
 
     def __init__(
         self,
-        speaker_handler: SpeakerManagerService,
-        model_handler: ModelManagerService,
-        content_handler: ContentManagerService
+        speaker_service: SpeakerManagerService,
+        model_service: ModelManagerService,
+        content_service: ContentManagerService
     ):
-        super().__init__(speaker_handler, model_handler, content_handler)
-        self.section_content = self.content_handler.get_section_content(
+        super().__init__(speaker_service, model_service, content_service)
+        self.section_content = self.content_service.get_section_content(
             "create")
-        self.common_content = self.content_handler.get_common_content()
+        self.common_content = self.content_service.get_common_content()
 
     def init_ui(self):
         section_description = SectionDescriptionComponent(
@@ -56,7 +56,7 @@ class ForgeCreateView(ForgeBaseView):
              speaker_audio_player,
              speech_textbox,
              language_select,
-             preview_speaker_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
+             preview_speaker_btn) = SpeechPreviewComponent(self.content_service.get_common_content())
 
             speech_textbox.change(
                 lambda text: gr.Button(interactive=is_empty_string(text)),
@@ -138,7 +138,7 @@ class ForgeCreateView(ForgeBaseView):
             )
 
     def get_speaker_embedding(self, wav_files):
-        gpt_cond_latent, speaker_embedding = self.model_handler.extract_speaker_embedding(
+        gpt_cond_latent, speaker_embedding = self.model_service.extract_speaker_embedding(
             wav_files)
 
         self.gpt_cond_latent = gpt_cond_latent
@@ -161,7 +161,7 @@ class ForgeCreateView(ForgeBaseView):
         wav_file = None
 
         if (self.gpt_cond_latent is not None and self.speaker_embedding is not None):
-            wav_file = self.model_handler.run_inference(
+            wav_file = self.model_service.run_inference(
                 lang=language,
                 tts_text=speech_text,
                 gpt_cond_latent=self.gpt_cond_latent,

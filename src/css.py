@@ -1,5 +1,5 @@
 def app_css():
-    return """
+    common_css = """
         #header-image { display: flex; justify-content: center; pointer-events: none; }
         #header-image button { display: flex; justify-content: center; pointer-events: none; }
         #header-image img { max-width: 876px; width: 100%; }
@@ -20,14 +20,6 @@ def app_css():
             font-size: 1.1em; 
             margin-top: 5px; 
             margin-left: 5px;
-        }
-        .changelog-content {
-            padding: 0 10px 15px;
-            font-size: 1.1em;
-        }
-        .about-content {
-            padding: 0 10px 15px;
-            font-size: 1.1em;
         }
         .ui-disabled {
             pointer-events: none;
@@ -66,4 +58,28 @@ def app_css():
                 opacity: 1.0;
             }
         }
-        """
+    """
+
+    import_css = """
+        .import-speaker-to-list {
+            padding: 0px 10px 10px;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+    """
+
+    changelog_css = """
+        .changelog-content {
+            padding: 0 10px 15px;
+            font-size: 1.1em;
+        }
+    """
+
+    about_css = """
+        .about-content {
+            padding: 0 10px 15px;
+            font-size: 1.1em;
+        }
+    """
+
+    return f"{common_css}\n{import_css}\n{changelog_css}\n{about_css}"

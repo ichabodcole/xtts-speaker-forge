@@ -57,6 +57,9 @@
         "description_input_label": "Speaker Description",
         "description_input_placeholder": "Enter a brief description of the speaker"
     },
+    "import": {
+        "section_description": "Import speakers from a separate speaker file into the current list of speakers."
+    },
     "export": {
         "section_description": "Export the speaker file to use in the XTTS model.",
         "speaker_checkbox_group_label": "Select Speakers to Export",

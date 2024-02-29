@@ -14,12 +14,12 @@ class ForgeAboutView(ForgeBaseView):
 
     def __init__(
         self,
-        speaker_handler: SpeakerManagerService,
-        model_handler: ModelManagerService,
-        content_handler: ContentManagerService
+        speaker_service: SpeakerManagerService,
+        model_service: ModelManagerService,
+        content_service: ContentManagerService
     ):
-        super().__init__(speaker_handler, model_handler, content_handler)
-        self.section_content = self.content_handler.get_section_content(
+        super().__init__(speaker_service, model_service, content_service)
+        self.section_content = self.content_service.get_section_content(
             'about')
 
     def init_ui(self):

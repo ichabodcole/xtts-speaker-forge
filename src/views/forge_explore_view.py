@@ -14,14 +14,14 @@ class ForgeExploreView(ForgeBaseView):
 
     def __init__(
         self,
-        speaker_handler: SpeakerManagerService,
-        model_handler: ModelManagerService,
-        content_handler: ContentManagerService
+        speaker_service: SpeakerManagerService,
+        model_service: ModelManagerService,
+        content_service: ContentManagerService
     ):
-        super().__init__(speaker_handler, model_handler, content_handler)
-        self.section_content = self.content_handler.get_section_content(
+        super().__init__(speaker_service, model_service, content_service)
+        self.section_content = self.content_service.get_section_content(
             'explore')
-        self.common_content = self.content_handler.get_common_content()
+        self.common_content = self.content_service.get_common_content()
 
     def init_ui(self):
         section_description = SectionDescriptionComponent(
@@ -43,7 +43,7 @@ class ForgeExploreView(ForgeBaseView):
          audio_player,
          speech_input_textbox,
          language_select,
-         generate_speech_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
+         generate_speech_btn) = SpeechPreviewComponent(self.content_service.get_common_content())
 
         # Setup the button click events
         speaker_select.change(
@@ -97,7 +97,7 @@ class ForgeExploreView(ForgeBaseView):
             gpt_cond_latent = self.speaker_data['gpt_cond_latent']
             speaker_embedding = self.speaker_data['speaker_embedding']
 
-            wav_file = self.model_handler.run_inference(
+            wav_file = self.model_service.run_inference(
                 lang=language,
                 tts_text=speech_text,
                 gpt_cond_latent=gpt_cond_latent,
