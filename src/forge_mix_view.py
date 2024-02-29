@@ -90,6 +90,7 @@ class ForgeMixView(ForgeBaseView):
             (audio_preview_group,
              audio_player,
              speech_input_textbox,
+             language_select,
              generate_speech_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
 
             # SAVE SPEAKER COMPONENT
@@ -179,7 +180,7 @@ class ForgeMixView(ForgeBaseView):
                 outputs=self.speaker_control_list
             ).then(
                 self.do_inference,
-                inputs=[speech_input_textbox],
+                inputs=[speech_input_textbox, language_select],
                 outputs=[
                     generate_speech_btn,
                     audio_player,
@@ -323,7 +324,7 @@ class ForgeMixView(ForgeBaseView):
                 f"Speaker \"{speaker_name}\" added successfully!")
         )
 
-    def do_inference(self, speech_input_text):
+    def do_inference(self, speech_input_text, language="en"):
         wav_file = None
         gpt_cond_latent = self.speaker_embedding.get("gpt_cond_latent", None)
         speaker_embedding = self.speaker_embedding.get(
@@ -331,7 +332,7 @@ class ForgeMixView(ForgeBaseView):
 
         if speaker_embedding is not None and gpt_cond_latent is not None:
             wav_file = self.model_handler.run_inference(
-                lang='en',
+                lang=language,
                 tts_text=speech_input_text,
                 gpt_cond_latent=gpt_cond_latent,
                 speaker_embedding=speaker_embedding,

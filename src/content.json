@@ -10,7 +10,8 @@
         "save_speaker_btn_label": "Save Speaker",
         "save_speaker_placeholder": "Enter speaker name.",
         "save_speaker_success_msg": "Speaker saved successfully!",
-        "save_speaker_failure_msg": "Error: Failed to save speaker!"
+        "save_speaker_failure_msg": "Error: Failed to save speaker!",
+        "language_select_label": "Select Language"
     },
     "setup": {
         "section_description": "Ensure the XTTS model paths are correctly setup, and the model can be loaded successfully before proceeding (fingers crossed).",

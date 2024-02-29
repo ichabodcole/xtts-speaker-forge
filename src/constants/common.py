@@ -97,3 +97,23 @@ CHARACTER_TYPE_CHOICES = [
     "Teenager",
     "Villain"
 ]
+
+
+LANGUAGE_CHOICES = [
+    "en",
+    "es",
+    "fr",
+    "de",
+    "it",
+    "pt",
+    "pl",
+    "tr",
+    "ru",
+    "nl",
+    "cs",
+    "ar",
+    "zh-cn",
+    # "ja", Japanese is currently resulting in an error
+    "hu",
+    "ko"
+]

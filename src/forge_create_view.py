@@ -56,6 +56,7 @@ class ForgeCreateView(ForgeBaseView):
             (speaker_preview_group,
              speaker_audio_player,
              speech_textbox,
+             language_select,
              preview_speaker_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
 
             speech_textbox.change(
@@ -121,7 +122,7 @@ class ForgeCreateView(ForgeBaseView):
                 ]
             ).then(
                 self.do_inference,
-                inputs=[speech_textbox],
+                inputs=[speech_textbox, language_select],
                 outputs=[
                     preview_speaker_btn,
                     speaker_audio_player,
@@ -155,12 +156,12 @@ class ForgeCreateView(ForgeBaseView):
             gr.Markdown(visible=False)
         ]
 
-    def do_inference(self, speech_text):
+    def do_inference(self, speech_text, language="en"):
         wav_file = None
 
         if (self.gpt_cond_latent is not None and self.speaker_embedding is not None):
             wav_file = self.model_handler.run_inference(
-                lang="en",
+                lang=language,
                 tts_text=speech_text,
                 gpt_cond_latent=self.gpt_cond_latent,
                 speaker_embedding=self.speaker_embedding

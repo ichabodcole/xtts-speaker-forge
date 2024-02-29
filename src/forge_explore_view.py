@@ -42,6 +42,7 @@ class ForgeExploreView(ForgeBaseView):
         (audio_preview_group,
          audio_player,
          speech_input_textbox,
+         language_select,
          generate_speech_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
 
         # Setup the button click events
@@ -67,7 +68,8 @@ class ForgeExploreView(ForgeBaseView):
             self.do_inference,
             inputs=[
                 speaker_select,
-                speech_input_textbox
+                speech_input_textbox,
+                language_select
             ],
             outputs=[
                 speaker_select,
@@ -86,7 +88,7 @@ class ForgeExploreView(ForgeBaseView):
             interactive=True
         )
 
-    def do_inference(self, speaker, speech_text):
+    def do_inference(self, speaker, speech_text, language="en"):
         self.speaker_data = self.speakers_handler.get_speaker_data(speaker)
 
         wav_file = None
@@ -96,7 +98,11 @@ class ForgeExploreView(ForgeBaseView):
             speaker_embedding = self.speaker_data['speaker_embedding']
 
             wav_file = self.model_handler.run_inference(
-                "en", speech_text, gpt_cond_latent, speaker_embedding)
+                lang=language,
+                tts_text=speech_text,
+                gpt_cond_latent=gpt_cond_latent,
+                speaker_embedding=speaker_embedding
+            )
 
         return [
             gr.Dropdown(interactive=True),
