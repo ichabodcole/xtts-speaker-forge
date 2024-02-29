@@ -1,17 +1,16 @@
 import random
 import gradio as gr
-from common_ui import validate_text_box
 from components.section_description_component import SectionDescriptionComponent
 from components.textbox_submit_component import TextboxSubmitComponent
 from constants.common import MAX_SPEAKER_CONTROL_COUNT
-from content_handler import ContentHandler
-from forge_base_view import ForgeBaseView
-from model_handler import ModelHandler
+from services.content_handler import ContentHandler
+from views.forge_base_view import ForgeBaseView
+from services.model_handler import ModelHandler
 from components.speaker_preview_component import SpeechPreviewComponent
-from speakers_handler import SpeakersHandler
+from services.speakers_handler import SpeakersHandler
 from random import randrange
 from types_module import SliderList, SpeakerEmbedding, SpeakerNameList, SpeakerWeightsList
-from utils.utils import format_notification
+from utils.utils import format_notification, is_empty_string
 
 SLIDER_MAX = 2
 SLIDER_MIN = 0
@@ -194,7 +193,7 @@ class ForgeMixView(ForgeBaseView):
             )
 
             speaker_name_textbox.change(
-                validate_text_box,
+                lambda text: gr.Button(interactive=is_empty_string(text)),
                 inputs=[speaker_name_textbox],
                 outputs=save_speaker_btn
             )

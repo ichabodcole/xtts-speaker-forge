@@ -1,6 +1,6 @@
-from content_handler import ContentHandler
-from model_handler import ModelHandler
-from speakers_handler import SpeakersHandler
+from services.content_handler import ContentHandler
+from services.model_handler import ModelHandler
+from services.speakers_handler import SpeakersHandler
 from abc import ABC, abstractmethod
 
 

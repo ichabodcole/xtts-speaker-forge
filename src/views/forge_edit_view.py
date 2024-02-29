@@ -2,10 +2,10 @@ import gradio as gr
 from components.notification_component import NotificationComponent
 from components.section_description_component import SectionDescriptionComponent
 from constants.common import ACCENT_CHOICES, AGE_RANGE_CHOICES, CHARACTER_TYPE_CHOICES, GENDER_CHOICES, GENRE_CHOICES, STYLE_CHOICES, TONAL_CHOICES
-from content_handler import ContentHandler
-from forge_base_view import ForgeBaseView
-from model_handler import ModelHandler
-from speakers_handler import SpeakersHandler
+from services.content_handler import ContentHandler
+from views.forge_base_view import ForgeBaseView
+from services.model_handler import ModelHandler
+from services.speakers_handler import SpeakersHandler
 from types_module import SpeakerMetadata
 from utils.utils import is_empty_string
 

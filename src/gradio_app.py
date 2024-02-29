@@ -3,19 +3,19 @@ import logging
 import argparse
 import sys
 import gradio as gr
-from content_handler import ContentHandler
+from services.content_handler import ContentHandler
 from css import app_css
-from forge_about_view import ForgeAboutView
-from forge_changelog_view import ForgeChangelogView
-from forge_edit_view import ForgeEditView
-from forge_export_view import ForgeExportView
-from model_handler import ModelHandler
-from speakers_handler import SpeakersHandler
+from views.forge_about_view import ForgeAboutView
+from views.forge_changelog_view import ForgeChangelogView
+from views.forge_edit_view import ForgeEditView
+from views.forge_export_view import ForgeExportView
+from services.model_handler import ModelHandler
+from services.speakers_handler import SpeakersHandler
 import pathlib
-from forge_create_view import ForgeCreateView
-from forge_explore_view import ForgeExploreView
-from forge_setup_view import ForgeSetupView
-from forge_mix_view import ForgeMixView
+from views.forge_create_view import ForgeCreateView
+from views.forge_explore_view import ForgeExploreView
+from views.forge_setup_view import ForgeSetupView
+from views.forge_mix_view import ForgeMixView
 from utils.utils import get_latest_changelog_version
 
 latest_version = get_latest_changelog_version()

@@ -1,15 +1,14 @@
 import time
 import gradio as gr
-from common_ui import validate_file_uploader, validate_text_box
 from components.notification_component import NotificationComponent
 from components.section_description_component import SectionDescriptionComponent
 from components.speaker_preview_component import SpeechPreviewComponent
 from components.textbox_submit_component import TextboxSubmitComponent
-from content_handler import ContentHandler
-from forge_base_view import ForgeBaseView
-from model_handler import ModelHandler
-from speakers_handler import SpeakersHandler
-from utils.utils import format_notification, get_random_speech_text
+from services.content_handler import ContentHandler
+from views.forge_base_view import ForgeBaseView
+from services.model_handler import ModelHandler
+from services.speakers_handler import SpeakersHandler
+from utils.utils import format_notification, get_random_speech_text, is_empty_file_list, is_empty_string
 
 
 class ForgeCreateView(ForgeBaseView):
@@ -60,7 +59,7 @@ class ForgeCreateView(ForgeBaseView):
              preview_speaker_btn) = SpeechPreviewComponent(self.content_handler.get_common_content())
 
             speech_textbox.change(
-                validate_text_box,
+                lambda text: gr.Button(interactive=is_empty_string(text)),
                 inputs=[speech_textbox],
                 outputs=preview_speaker_btn
             )
@@ -81,7 +80,9 @@ class ForgeCreateView(ForgeBaseView):
 
             # Setup Events
             file_uploader.change(
-                validate_file_uploader,
+                lambda file_list: gr.Button(
+                    interactive=is_empty_file_list(file_list)
+                ),
                 inputs=[file_uploader],
                 outputs=create_speaker_embedding_btn
             )

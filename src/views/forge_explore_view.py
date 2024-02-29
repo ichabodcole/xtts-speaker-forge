@@ -1,10 +1,10 @@
 import gradio as gr
 from components.section_description_component import SectionDescriptionComponent
-from content_handler import ContentHandler
-from forge_base_view import ForgeBaseView
-from model_handler import ModelHandler
+from services.content_handler import ContentHandler
+from views.forge_base_view import ForgeBaseView
+from services.model_handler import ModelHandler
 from components.speaker_preview_component import SpeechPreviewComponent
-from speakers_handler import SpeakersHandler
+from services.speakers_handler import SpeakersHandler
 
 
 class ForgeExploreView(ForgeBaseView):

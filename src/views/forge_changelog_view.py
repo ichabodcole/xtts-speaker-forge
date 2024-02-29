@@ -1,11 +1,11 @@
 import os
 import gradio as gr
 from components.section_description_component import SectionDescriptionComponent
-from content_handler import ContentHandler
+from services.content_handler import ContentHandler
 
-from forge_base_view import ForgeBaseView
-from model_handler import ModelHandler
-from speakers_handler import SpeakersHandler
+from views.forge_base_view import ForgeBaseView
+from services.model_handler import ModelHandler
+from services.speakers_handler import SpeakersHandler
 from utils.utils import format_notification, load_changelog_md
 
 
