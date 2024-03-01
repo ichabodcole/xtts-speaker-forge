@@ -1,8 +1,9 @@
 import torch
 from enum import Enum
 from typing import List
-
 from types_module import EmbeddingPairsList
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class CombineMethod(Enum):
@@ -48,7 +49,7 @@ def combine_embeddings(embeddings: EmbeddingPairsList, method: CombineMethod, we
             "Weights match the number of embeddings for weighted average.")
 
     weighted_embeddings = [
-        embedding * weight for embedding, weight in zip(embeddings, weights)]
+        embedding.to(device) * weight for embedding, weight in zip(embeddings, weights)]
 
     if method == CombineMethod.MEAN:
         return torch.mean(torch.stack(weighted_embeddings), dim=0)
@@ -68,37 +69,37 @@ def combine_embeddings(embeddings: EmbeddingPairsList, method: CombineMethod, we
         raise ValueError("Invalid combine method specified.")
 
 
-def combine_embeddings_alt(embeddings: EmbeddingPairsList, method: CombineMethod, weights: List[float] | None = None):
-    if weights is None:
-        # Default to equal weighting if none provided
-        weights = [1.0 for _ in embeddings]
+# def combine_embeddings_alt(embeddings: EmbeddingPairsList, method: CombineMethod, weights: List[float] | None = None):
+#     if weights is None:
+#         # Default to equal weighting if none provided
+#         weights = [1.0 for _ in embeddings]
 
-    if len(weights) != len(embeddings):
-        raise ValueError(
-            "Weights must match the number of embeddings for a weighted average.")
+#     if len(weights) != len(embeddings):
+#         raise ValueError(
+#             "Weights must match the number of embeddings for a weighted average.")
 
-    # Convert embeddings and weights to tensors for efficient computation
-    # Shape: [num_embeddings, embedding_dim]
-    embeddings_tensor = torch.stack(embeddings)
-    weights_tensor = torch.tensor(
-        weights, dtype=torch.float32)  # Shape: [num_embeddings]
+#     # Convert embeddings and weights to tensors for efficient computation
+#     # Shape: [num_embeddings, embedding_dim]
+#     embeddings_tensor = torch.stack(embeddings).to(device)
+#     weights_tensor = torch.tensor(weights, dtype=torch.float32).to(
+#         device)  # Shape: [num_embeddings]
 
-    weighted_embeddings = embeddings_tensor * \
-        weights_tensor.unsqueeze(1)  # Apply weights
+#     weighted_embeddings = embeddings_tensor * \
+#         weights_tensor.unsqueeze(1)  # Apply weights
 
-    if method == CombineMethod.MEAN:
-        # Calculate the weighted sum of embeddings
-        weighted_sum = torch.sum(weighted_embeddings, dim=0)
-        # Calculate the sum of weights
-        sum_of_weights = torch.sum(weights_tensor)
-        # Compute the weighted mean
-        avg_embedding = weighted_sum / sum_of_weights
-        return avg_embedding
-    elif method == CombineMethod.SUM:
-        return torch.sum(weighted_embeddings, dim=0)
-    # Add other methods as necessary
-    else:
-        raise ValueError("Invalid combine method specified.")
+#     if method == CombineMethod.MEAN:
+#         # Calculate the weighted sum of embeddings
+#         weighted_sum = torch.sum(weighted_embeddings, dim=0)
+#         # Calculate the sum of weights
+#         sum_of_weights = torch.sum(weights_tensor)
+#         # Compute the weighted mean
+#         avg_embedding = weighted_sum / sum_of_weights
+#         return avg_embedding
+#     elif method == CombineMethod.SUM:
+#         return torch.sum(weighted_embeddings, dim=0)
+#     # Add other methods as necessary
+#     else:
+#         raise ValueError("Invalid combine method specified.")
 
 
 def normalize_weights(weights):
