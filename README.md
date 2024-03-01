@@ -6,7 +6,7 @@ _A Gradio interface for Exploring, Creating, Editing, Mixing, Importing and Expo
 
 ## Run using Google Colab
 
-- [Google Colab Notebook](https://colab.research.google.com/drive/17iobUgQNe08-B1w7UlcbwmukJiaow-K9)
+- [Google Colab Notebook](https://colab.research.google.com/github/ichabodcole/xtts-speaker-forge/blob/main/XTTS_SpeakerForge_v1.ipynb)
 
 ## Run locally
 
