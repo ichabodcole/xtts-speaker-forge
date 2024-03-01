@@ -1,3 +1,9 @@
+# 1.0.0-alpha.4 (2024-02-29)
+
+## Bug Fixes
+
+- fix tensors running on multiple devices error
+
 # 1.0.0-alpha.3 (2024-02-29)
 
 ## Features
