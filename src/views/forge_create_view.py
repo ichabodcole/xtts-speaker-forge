@@ -8,7 +8,7 @@ from services.content_manager_service import ContentManagerService
 from views.forge_base_view import ForgeBaseView
 from services.model_manager_service import ModelManagerService
 from services.speaker_manager_service import SpeakerManagerService
-from utils.utils import format_notification, get_random_speech_text, is_empty_file_list, is_empty_string
+from utils.utils import format_notification, is_empty_file_list
 
 
 class ForgeCreateView(ForgeBaseView):
@@ -58,12 +58,6 @@ class ForgeCreateView(ForgeBaseView):
              language_select,
              preview_speaker_btn) = SpeechPreviewComponent(self.content_service.get_common_content())
 
-            speech_textbox.change(
-                lambda text: gr.Button(interactive=is_empty_string(text)),
-                inputs=[speech_textbox],
-                outputs=preview_speaker_btn
-            )
-
             # SAVE SPEAKER COMPONENT
             (speaker_save_group,
              speaker_name_textbox,
@@ -81,7 +75,7 @@ class ForgeCreateView(ForgeBaseView):
             # Setup Events
             file_uploader.change(
                 lambda file_list: gr.Button(
-                    interactive=is_empty_file_list(file_list)
+                    interactive=(not is_empty_file_list(file_list))
                 ),
                 inputs=[file_uploader],
                 outputs=create_speaker_embedding_btn

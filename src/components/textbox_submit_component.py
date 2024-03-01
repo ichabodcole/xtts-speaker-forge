@@ -1,5 +1,4 @@
 import gradio as gr
-
 from utils.utils import format_notification, is_empty_string
 
 
@@ -19,7 +18,7 @@ def TextboxSubmitComponent(
                 scale=3
             )
 
-            submit_btn = gr.Button(button_label, scale=1)
+            submit_btn = gr.Button(button_label, scale=1, interactive=False)
 
     notification_text = gr.Markdown(
         value=format_notification(
@@ -28,10 +27,8 @@ def TextboxSubmitComponent(
     )
 
     textbox_input.change(
-        lambda text: (
-            gr.Button(interactive=False)
-            if is_empty_string(text)
-            else gr.Button(interactive=True)
+        lambda text: gr.Button(
+            interactive=(not is_empty_string(text))
         ),
         inputs=[textbox_input],
         outputs=[submit_btn]

@@ -9,7 +9,7 @@ from components.speaker_preview_component import SpeechPreviewComponent
 from services.speaker_manager_service import SpeakerManagerService
 from random import randrange
 from types_module import SliderList, SpeakerData, SpeakerNameList, SpeakerWeightsList
-from utils.utils import format_notification, is_empty_string
+from utils.utils import format_notification
 
 MAX_SPEAKER_CONTROL_COUNT = 10
 MAX_SPICY_SPEAKER_COUNT = 5
@@ -191,12 +191,6 @@ class ForgeMixView(ForgeBaseView):
                 self.enable_control_list,
                 inputs=[speaker_select],
                 outputs=self.speaker_control_list
-            )
-
-            speaker_name_textbox.change(
-                lambda text: gr.Button(interactive=is_empty_string(text)),
-                inputs=[speaker_name_textbox],
-                outputs=save_speaker_btn
             )
 
             save_speaker_btn.click(

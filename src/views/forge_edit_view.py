@@ -162,8 +162,9 @@ class ForgeEditView(ForgeBaseView):
         )
 
         speaker_name_input.change(
-            lambda speaker_name: gr.Button(interactive=False) if is_empty_string(
-                speaker_name) else gr.Button(interactive=True),
+            lambda text: gr.Button(
+                interactive=(not is_empty_string(text))
+            ),
             inputs=[speaker_name_input],
             outputs=speaker_save_changes_btn
         )
