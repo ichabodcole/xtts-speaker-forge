@@ -74,11 +74,15 @@ class ForgeCreateView(ForgeBaseView):
 
             # Setup Events
             file_uploader.change(
-                lambda file_list: gr.Button(
-                    interactive=(not is_empty_file_list(file_list))
-                ),
+                lambda file_list: [
+                    gr.Button(interactive=(not is_empty_file_list(file_list))),
+                    gr.Audio(value=None)
+                ],
                 inputs=[file_uploader],
-                outputs=create_speaker_embedding_btn
+                outputs=[
+                    create_speaker_embedding_btn,
+                    speaker_audio_player
+                ]
             )
 
             # Extracts the speaker embedding from the uploaded audio, then displays the audio player group, but hiding the audio player
