@@ -11,7 +11,7 @@ class SpeakerManagerService:
     speakers_file_data: SpeakerFileData = None
     speakers_file: str = None
 
-    def set_speaker_file(self, speakers_file):
+    def set_speaker_file(self, speakers_file: str):
         if not is_valid_file(speakers_file):
             raise FileExistsError("Speaker file does not exist")
 
@@ -39,9 +39,9 @@ class SpeakerManagerService:
 
     def add_speaker(
         self,
-        speaker_name,
-        gpt_cond_latent,
-        speaker_embedding,
+        speaker_name: str,
+        gpt_cond_latent: torch.Tensor,
+        speaker_embedding: torch.Tensor,
         metadata: SpeakerMetadata = None
     ):
         self.speakers_file_data[speaker_name] = {
@@ -50,14 +50,14 @@ class SpeakerManagerService:
             "metadata": metadata
         }
 
-    def update_speaker_name(self, old_speaker_name, new_speaker_name):
+    def update_speaker_name(self, old_speaker_name: str, new_speaker_name: str):
         if old_speaker_name in self.speakers_file_data:
             self.speakers_file_data[new_speaker_name] = self.speakers_file_data.pop(
                 old_speaker_name)
         else:
             print(f"Speaker {old_speaker_name} does not exist")
 
-    def update_speaker_meta(self, speaker_name, metadata: SpeakerMetadata = None):
+    def update_speaker_meta(self, speaker_name: str, metadata: SpeakerMetadata = None):
         if speaker_name in self.speakers_file_data:
             if metadata is not None:
                 new_speaker_name = metadata.get("speaker_name", None)
@@ -76,7 +76,7 @@ class SpeakerManagerService:
         else:
             print(f"Speaker {speaker_name} does not exist")
 
-    def get_speaker_metadata(self, speaker_name) -> SpeakerMetadata | None:
+    def get_speaker_metadata(self, speaker_name: str) -> SpeakerMetadata | None:
         if speaker_name in self.speakers_file_data:
             speaker = self.speakers_file_data[speaker_name]
             if "metadata" in speaker:
@@ -84,13 +84,13 @@ class SpeakerManagerService:
 
         return None
 
-    def remove_speaker(self, speaker_name):
+    def remove_speaker(self, speaker_name: str):
         if speaker_name in self.speakers_file_data:
             del self.speakers_file_data[speaker_name]
         else:
             print(f"Speaker {speaker_name} does not exist")
 
-    def save_speaker_file(self, output_path=None):
+    def save_speaker_file(self, output_path: str | None = None):
         if output_path is not None:
             torch.save(self.speakers_file_data, output_path)
         else:
