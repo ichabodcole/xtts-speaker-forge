@@ -149,13 +149,27 @@ class SpeakerManagerService:
             print(f"Error loading speaker file: {e}")
             return None
 
+    def tensor_to_cpu(self, speaker_embedding: torch.Tensor):
+        if speaker_embedding.is_cuda:
+            return speaker_embedding.cpu()
+
+        return speaker_embedding
+
     def create_speaker_file_from_selected_speakers(self, selected_speakers: list[str]):
-        speaker_file_data = {}
+        speaker_file_data: SpeakerFileData = {}
         time_seconds = int(time.time())
 
         for speaker in selected_speakers:
             if speaker in self.speakers_file_data:
                 speaker_file_data[speaker] = self.speakers_file_data[speaker]
+
+                gpu_cond_latent = speaker_file_data[speaker]["gpt_cond_latent"]
+                speaker_embedding = speaker_file_data[speaker]["speaker_embedding"]
+
+                speaker_file_data[speaker]["gpt_cond_latent"] = self.tensor_to_cpu(
+                    gpu_cond_latent)
+                speaker_file_data[speaker]["speaker_embedding"] = self.tensor_to_cpu(
+                    speaker_embedding)
 
         speaker_file_dir = pathlib.Path(self.speakers_file).parent.resolve()
 
