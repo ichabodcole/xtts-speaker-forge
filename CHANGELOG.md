@@ -1,3 +1,10 @@
+# 1.0.0-alpha.5 (2024-03-03)
+
+## Bug Fixes
+
+- Import View: unable to read speaker file on cpu device if created on gpu device
+- Create View: reset audio player value after file changes
+
 # 1.0.0-alpha.4 (2024-02-29)
 
 ## Bug Fixes
