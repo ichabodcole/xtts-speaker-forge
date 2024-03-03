@@ -12,7 +12,7 @@ class ModelManagerService:
     def __init__(self):
         self.model = None
 
-    def set_file_paths(self, checkpoint_dir, vocab_file, config_file):
+    def set_file_paths(self, checkpoint_dir: str, vocab_file: str, config_file: str):
         if not is_valid_file_list([checkpoint_dir, vocab_file, config_file]):
             raise FileExistsError(
                 "One or more files are invalid or do not exist !!")
@@ -50,7 +50,7 @@ class ModelManagerService:
 
         return self.model
 
-    def extract_speaker_embedding(self, speaker_audio_files):
+    def extract_speaker_embedding(self, speaker_audio_files: str):
         if self.model is None:
             print("Loading model... Be Patient.")
             self.load_model()
@@ -64,7 +64,14 @@ class ModelManagerService:
 
         return gpt_cond_latent, speaker_embedding
 
-    def run_inference(self, lang, tts_text, gpt_cond_latent, speaker_embedding, file_name=None):
+    def run_inference(
+        self,
+        lang: str,
+        tts_text: str,
+        gpt_cond_latent: torch.Tensor,
+        speaker_embedding: torch.Tensor,
+        file_name=None
+    ):
         if self.model is None:
             print("Loading model... Be Patient.")
             self.load_model()
@@ -72,8 +79,8 @@ class ModelManagerService:
         out = self.model.inference(
             text=tts_text,
             language=lang,
-            gpt_cond_latent=gpt_cond_latent,
-            speaker_embedding=speaker_embedding,
+            gpt_cond_latent=gpt_cond_latent.to(self.model.device),
+            speaker_embedding=speaker_embedding.to(self.model.device),
             temperature=self.model.config.temperature,  # Add custom parameters here
             length_penalty=self.model.config.length_penalty,
             repetition_penalty=self.model.config.repetition_penalty,
