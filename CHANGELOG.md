@@ -1,3 +1,9 @@
+# 1.0.0-alpha.6 (2024-03-05)
+
+## Bug Fixes
+
+- Move speaker metadata to root level property `__speaker_metadata__` to avoid unpacking errors with TTS api lib. Any previously created speaker files will be automatically updated to new format if imported into Speaker Forge on file export.
+
 # 1.0.0-alpha.5 (2024-03-03)
 
 ## Bug Fixes

@@ -8,7 +8,7 @@ _A Gradio interface for Exploring, Creating, Editing, Mixing, Importing and Expo
 
 - [Google Colab Notebook](https://colab.research.google.com/github/ichabodcole/xtts-speaker-forge/blob/main/XTTS_SpeakerForge_v1.ipynb)
 
-## Run locally
+## Run locally (Linux / Mac)
 
 1. Clone the repo `git clone https://github.com/ichabodcole/xtts-speaker-forge.git`
 2. CD into the newly created directory `cd xtts-speaker-forge`
@@ -16,6 +16,10 @@ _A Gradio interface for Exploring, Creating, Editing, Mixing, Importing and Expo
 4. Install the packages `pip install -q -r ./requirements.txt`
 5. Run the app `bash run.sh`
 6. Click open the gradio app at localhost:5003
+
+## Run locally (Windows)
+
+_Not yet supported or tested, though it may work under WSL :D_
 
 ## Package install Errors
 
