@@ -1,30 +1,27 @@
 import gradio as gr
-from components.notification_component import NotificationComponent
 from components.section_description_component import SectionDescriptionComponent
 from services.content_manager_service import ContentManagerService
-from types_module import SpeakerFileData
 from views.forge_base_view import ForgeBaseView
 from services.model_manager_service import ModelManagerService
 from services.speaker_manager_service import SpeakerManagerService
-from utils.utils import format_notification
 
 
 class ForgeImportView(ForgeBaseView):
     section_content: dict
     common_content: dict
     to_speakers: list[str] = []
-    from_speaker_data: SpeakerFileData = None
 
     def __init__(
         self,
-        speakers_handler: SpeakerManagerService,
+        speaker_service: SpeakerManagerService,
         model_service: ModelManagerService,
         content_service: ContentManagerService
     ):
-        super().__init__(speakers_handler, model_service, content_service)
+        super().__init__(speaker_service, model_service, content_service)
         self.section_content = self.content_service.get_section_content(
             'import')
         self.common_content = self.content_service.get_common_content()
+        self.from_speaker_manager_service = SpeakerManagerService()
 
     def init_ui(self):
         section_description = SectionDescriptionComponent(
@@ -110,7 +107,7 @@ class ForgeImportView(ForgeBaseView):
 
         select_all_btn.click(
             lambda: gr.CheckboxGroup(
-                value=self.get_speaker_names_from_data(self.from_speaker_data)),
+                value=self.from_speaker_manager_service.get_speaker_names()),
             outputs=speaker_from_checkbox_group
         )
 
@@ -140,11 +137,8 @@ class ForgeImportView(ForgeBaseView):
 
     def file_uploader_change(self, file):
         if file:
-            self.from_speaker_data = self.speakers_handler.import_speakers_from_file(
-                file)
-
-            speaker_names = self.get_speaker_names_from_data(
-                self.from_speaker_data)
+            self.from_speaker_manager_service.set_speaker_file(file)
+            speaker_names = self.from_speaker_manager_service.get_speaker_names()
 
             return gr.CheckboxGroup(
                 choices=speaker_names,
@@ -157,7 +151,7 @@ class ForgeImportView(ForgeBaseView):
     def load_speaker_data(self):
         speaker_text = "### Current Speakers\n\n"
 
-        self.to_speakers = self.speakers_handler.get_speaker_names()
+        self.to_speakers = self.speaker_service.get_speaker_names()
 
         for speaker in self.to_speakers:
             speaker_text += f"  - {speaker}\n"
@@ -165,20 +159,25 @@ class ForgeImportView(ForgeBaseView):
         return speaker_text
 
     def import_speakers(self, from_selected_speaker: list[str] | None):
+
         for speaker in from_selected_speaker:
-            speaker_data = self.from_speaker_data.get(speaker)
+            speaker_data = self.from_speaker_manager_service.get_speaker_data(
+                speaker)
 
             if speaker_data is not None:
-                self.speakers_handler.add_speaker(
-                    speaker,
-                    speaker_data.get("gpt_cond_latent"),
-                    speaker_data.get("speaker_embedding"),
-                    speaker_data.get("metadata", None)
+                speaker_metadata = self.from_speaker_manager_service.get_speaker_metadata(
+                    speaker)
+
+                gpt_cond_latent = speaker_data.get("gpt_cond_latent")
+                speaker_embedding = speaker_data.get("speaker_embedding")
+
+                self.speaker_service.add_speaker(
+                    speaker_name=speaker,
+                    gpt_cond_latent=gpt_cond_latent,
+                    speaker_embedding=speaker_embedding,
+                    metadata=speaker_metadata
                 )
 
-        self.speakers_handler.save_speaker_file()
+        self.speaker_service.save_speaker_file()
 
         return self.load_speaker_data()
-
-    def get_speaker_names_from_data(self, speaker_data: SpeakerFileData):
-        return list(speaker_data.keys())

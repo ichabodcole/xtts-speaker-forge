@@ -182,7 +182,7 @@ class ForgeCreateView(ForgeBaseView):
                 visible=True
             )
 
-        cur_speaker_names = self.speakers_handler.get_speaker_names()
+        cur_speaker_names = self.speaker_service.get_speaker_names()
         if speaker_name in cur_speaker_names:
             return gr.Markdown(
                 value=format_notification(
@@ -190,10 +190,10 @@ class ForgeCreateView(ForgeBaseView):
                 visible=True
             )
 
-        self.speakers_handler.add_speaker(
+        self.speaker_service.add_speaker(
             speaker_name, self.gpt_cond_latent, self.speaker_embedding)
 
-        self.speakers_handler.save_speaker_file()
+        self.speaker_service.save_speaker_file()
 
         return gr.Markdown(
             value=format_notification(

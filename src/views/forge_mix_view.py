@@ -35,7 +35,7 @@ class ForgeMixView(ForgeBaseView):
         content_service: ContentManagerService
     ):
         super().__init__(speaker_service, model_service, content_service)
-        self.speaker_name_list = self.speakers_handler.get_speaker_names()
+        self.speaker_name_list = self.speaker_service.get_speaker_names()
         self.section_content = self.content_service.get_section_content("mix")
         self.common_content = self.content_service.get_common_content()
 
@@ -234,7 +234,7 @@ class ForgeMixView(ForgeBaseView):
         return next_sliders
 
     def handle_load_speaker_click(self):
-        self.speaker_name_list = self.speakers_handler.get_speaker_names()
+        self.speaker_name_list = self.speaker_service.get_speaker_names()
 
         return gr.Dropdown(
             choices=self.speaker_name_list,
@@ -267,7 +267,7 @@ class ForgeMixView(ForgeBaseView):
         self.update_speaker_weights(slider_speaker, slider_value)
 
     def handle_generate_speech_click(self):
-        self.speaker_embedding = self.speakers_handler.create_speaker_embedding_from_mix(
+        self.speaker_embedding = self.speaker_service.create_speaker_embedding_from_mix(
             self.speaker_weights)
 
         return gr.Column(elem_classes=["ui-disabled"])
@@ -313,10 +313,13 @@ class ForgeMixView(ForgeBaseView):
         gpt_cond_latent = self.speaker_embedding["gpt_cond_latent"]
         speaker_embedding = self.speaker_embedding["speaker_embedding"]
 
-        self.speakers_handler.add_speaker(
-            speaker_name, gpt_cond_latent, speaker_embedding)
+        self.speaker_service.add_speaker(
+            speaker_name=speaker_name,
+            gpt_cond_latent=gpt_cond_latent,
+            speaker_embedding=speaker_embedding
+        )
 
-        self.speakers_handler.save_speaker_file()
+        self.speaker_service.save_speaker_file()
 
         return gr.Markdown(
             value=format_notification(

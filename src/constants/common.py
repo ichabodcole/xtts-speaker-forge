@@ -1,3 +1,5 @@
+SPEAKER_METADATA_KEY = "__speaker_metadata__"
+
 GENDER_CHOICES = [
     "Male",
     "Female",

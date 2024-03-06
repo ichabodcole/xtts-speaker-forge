@@ -79,7 +79,7 @@ class ForgeExploreView(ForgeBaseView):
         )
 
     def load_speaker_data(self):
-        speakers = self.speakers_handler.get_speaker_names()
+        speakers = self.speaker_service.get_speaker_names()
 
         return gr.Dropdown(
             choices=speakers,
@@ -89,7 +89,7 @@ class ForgeExploreView(ForgeBaseView):
         )
 
     def do_inference(self, speaker, speech_text, language="en"):
-        self.speaker_data = self.speakers_handler.get_speaker_data(speaker)
+        self.speaker_data = self.speaker_service.get_speaker_data(speaker)
 
         wav_file = None
 

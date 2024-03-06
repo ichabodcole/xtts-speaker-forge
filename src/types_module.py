@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union
 from typing_extensions import TypedDict
 import gradio as gr
 import torch
@@ -27,10 +27,9 @@ SpeakerWeightsList = List[SpeakerWeight]
 class SpeakerData(TypedDict):
     gpt_cond_latent: torch.Tensor
     speaker_embedding: torch.Tensor
-    metadata: SpeakerMetadata | None
 
 
-SpeakerFileData = Dict[str, SpeakerData]
+SpeakerFileData = Dict[str, Union[SpeakerData | Dict[str, SpeakerMetadata]]]
 
 
 class SpeakerEntry(SpeakerData):

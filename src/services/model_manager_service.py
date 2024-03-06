@@ -79,8 +79,8 @@ class ModelManagerService:
         out = self.model.inference(
             text=tts_text,
             language=lang,
-            gpt_cond_latent=gpt_cond_latent.to(self.model.device),
-            speaker_embedding=speaker_embedding.to(self.model.device),
+            gpt_cond_latent=gpt_cond_latent,
+            speaker_embedding=speaker_embedding,
             temperature=self.model.config.temperature,  # Add custom parameters here
             length_penalty=self.model.config.length_penalty,
             repetition_penalty=self.model.config.repetition_penalty,

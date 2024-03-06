@@ -33,8 +33,8 @@ class ForgeExportView(ForgeBaseView):
 
             speaker_checkbox_group = gr.CheckboxGroup(
                 label=None,
-                choices=self.speakers_handler.get_speaker_names(),
-                value=self.speakers_handler.get_speaker_names(),
+                choices=self.speaker_service.get_speaker_names(),
+                value=self.speaker_service.get_speaker_names(),
                 interactive=True
             )
 
@@ -65,15 +65,15 @@ class ForgeExportView(ForgeBaseView):
 
         select_all_btn.click(
             lambda: gr.CheckboxGroup(
-                choices=self.speakers_handler.get_speaker_names(),
-                value=self.speakers_handler.get_speaker_names()
+                choices=self.speaker_service.get_speaker_names(),
+                value=self.speaker_service.get_speaker_names()
             ),
             outputs=[speaker_checkbox_group]
         )
 
         deselect_all_btn.click(
             lambda: gr.CheckboxGroup(
-                choices=self.speakers_handler.get_speaker_names(),
+                choices=self.speaker_service.get_speaker_names(),
                 value=[]
             ),
             outputs=[speaker_checkbox_group]
@@ -96,7 +96,7 @@ class ForgeExportView(ForgeBaseView):
         )
 
     def load_speakers(self):
-        speaker_names = self.speakers_handler.get_speaker_names()
+        speaker_names = self.speaker_service.get_speaker_names()
 
         return gr.CheckboxGroup(
             choices=speaker_names,
@@ -104,7 +104,7 @@ class ForgeExportView(ForgeBaseView):
         )
 
     def export_speaker_file(self, selected_speakers):
-        file_path = self.speakers_handler.create_speaker_file_from_selected_speakers(
+        file_path = self.speaker_service.create_speaker_file_from_selected_speakers(
             selected_speakers)
 
         return gr.File(value=file_path, visible=True)

@@ -202,7 +202,7 @@ class ForgeEditView(ForgeBaseView):
 
     # Event Handlers
     def load_speaker_data(self, selected_speaker=None):
-        speakers = self.speakers_handler.get_speaker_names()
+        speakers = self.speaker_service.get_speaker_names()
 
         speaker = selected_speaker if selected_speaker in speakers else speakers[0]
 
@@ -214,7 +214,7 @@ class ForgeEditView(ForgeBaseView):
 
     def update_speaker_fields(self, selected_speaker):
 
-        speaker_metadata = self.speakers_handler.get_speaker_metadata(
+        speaker_metadata = self.speaker_service.get_speaker_metadata(
             selected_speaker) or {}
 
         name = selected_speaker
@@ -253,8 +253,8 @@ class ForgeEditView(ForgeBaseView):
         ]
 
     def remove_speaker(self, selected_speaker):
-        self.speakers_handler.remove_speaker(selected_speaker)
-        self.speakers_handler.save_speaker_file()
+        self.speaker_service.remove_speaker(selected_speaker)
+        self.speaker_service.save_speaker_file()
 
         return gr.Markdown(value=f"Speaker {selected_speaker} Removed!", visible=True)
 
@@ -286,9 +286,9 @@ class ForgeEditView(ForgeBaseView):
             "description": speaker_description
         }
 
-        self.speakers_handler.update_speaker_meta(
+        self.speaker_service.update_speaker_meta(
             selected_speaker, speaker_metadata)
 
-        self.speakers_handler.save_speaker_file()
+        self.speaker_service.save_speaker_file()
 
         return gr.Markdown(value=f"Speaker {selected_speaker} Attributes Update!", visible=True)

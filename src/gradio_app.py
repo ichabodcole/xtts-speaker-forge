@@ -40,12 +40,11 @@ if not speaker_file:
 
 
 content_service = ContentManagerService(content_file_path)
-speakers_handler = SpeakerManagerService()
-# speakers_handler.set_speaker_file(speaker_file)
+speaker_service = SpeakerManagerService()
 
 model_service = ModelManagerService()
 setup_view = ForgeSetupView(
-    speakers_handler,
+    speaker_service,
     model_service,
     content_service
 )
@@ -57,49 +56,49 @@ setup_view.set_file_paths(
 )
 
 explore_view = ForgeExploreView(
-    speakers_handler,
+    speaker_service,
     model_service,
     content_service
 )
 
 create_view = ForgeCreateView(
-    speakers_handler,
+    speaker_service,
     model_service,
     content_service
 )
 
 mix_view = ForgeMixView(
-    speakers_handler,
+    speaker_service,
     model_service,
     content_service
 )
 
 edit_view = ForgeEditView(
-    speakers_handler,
+    speaker_service,
     model_service,
     content_service
 )
 
 import_view = ForgeImportView(
-    speakers_handler,
+    speaker_service,
     model_service,
     content_service
 )
 
 export_view = ForgeExportView(
-    speakers_handler,
+    speaker_service,
     model_service,
     content_service
 )
 
 changelog_view = ForgeChangelogView(
-    speakers_handler,
+    speaker_service,
     model_service,
     content_service
 )
 
 about_view = ForgeAboutView(
-    speakers_handler,
+    speaker_service,
     model_service,
     content_service
 )

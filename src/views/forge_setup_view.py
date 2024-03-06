@@ -114,7 +114,6 @@ class ForgeSetupView(ForgeBaseView):
             )
 
     def validate_paths_and_load_model(self, checkpoint_dir, vocab_file, config_file, speaker_file):
-        print(speaker_file)
 
         def response(message, is_ui_enabled):
             return [
@@ -129,13 +128,15 @@ class ForgeSetupView(ForgeBaseView):
             ]
 
         try:
-            if (self.speakers_handler.speakers_file is None):
+            if (self.speaker_service.get_speaker_file() is None):
                 temp_file_path = self.create_temp_speaker_file(speaker_file)
-                self.speakers_handler.set_speaker_file(temp_file_path)
+                self.speaker_service.set_speaker_file(temp_file_path)
+
         except Exception as e:
             md_message = format_notification(
                 self.section_content.get("speaker_file_error"))
             is_ui_enabled = False
+
             return response(md_message, is_ui_enabled)
 
         try:
@@ -169,7 +170,7 @@ class ForgeSetupView(ForgeBaseView):
 
                 file_path = shutil.copy(speaker_file, temp_file_name)
 
-                return file_path
+            return file_path
 
         print("Speaker file does not exist")
         return None
