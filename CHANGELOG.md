@@ -1,3 +1,19 @@
+# 1.0.0-alpha.7 (2025-03-19)
+
+## Features
+
+- **Major Upgrade**: Migrated from Gradio 4.19.2 to Gradio 5.22.0
+  - Updated all component instantiations to use the `value` parameter
+  - Added explicit audio format settings (format="wav") to all audio components
+  - Fixed UI loading state handling in Mix View
+  - All views and components are now fully compatible with Gradio 5
+
+## Technical Improvements
+
+- Improved audio playback reliability with explicit format settings
+- Enhanced UI responsiveness with updated component parameters
+- Simplified view implementations according to Gradio 5 best practices
+
 # 1.0.0-alpha.6 (2024-03-05)
 
 ## Bug Fixes

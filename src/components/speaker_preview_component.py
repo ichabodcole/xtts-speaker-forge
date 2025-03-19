@@ -9,7 +9,9 @@ def SpeechPreviewComponent(content: dict):
         input_text = get_random_speech_text()
 
         audio_player = gr.Audio(
-            value=None, format="wav")
+            value=None, 
+            format="wav"  # Explicitly set format for Gradio 5 compatibility
+        )
 
         with gr.Row():
             language_select = gr.Dropdown(
@@ -30,7 +32,7 @@ def SpeechPreviewComponent(content: dict):
             )
 
         generate_speech_btn = gr.Button(
-            content.get('generate_speech_btn_label')
+            value=content.get('generate_speech_btn_label')
         )
 
     # Event handling
@@ -43,7 +45,7 @@ def SpeechPreviewComponent(content: dict):
     )
 
     generate_speech_btn.click(
-        lambda: ([gr.Audio(value=None), gr.Button(interactive=False)]),
+        lambda: ([gr.Audio(value=None, format="wav"), gr.Button(interactive=False)]),
         outputs=[
             audio_player,
             generate_speech_btn

@@ -26,6 +26,7 @@ class ForgeChangelogView(ForgeBaseView):
         section_description = SectionDescriptionComponent(
             value=self.section_content['section_description'])
 
+        # In Gradio 5, Markdown component has been updated but API remains compatible
         gr.Markdown(value=self.load_changelog(),
                     elem_classes=["changelog-content"])
 

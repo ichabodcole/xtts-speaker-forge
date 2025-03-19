@@ -45,7 +45,7 @@ class ForgeMixView(ForgeBaseView):
             value=self.section_content.get("section_description"))
 
         load_speakers_btn = gr.Button(
-            self.common_content.get("load_speakers_btn_label"))
+            value=self.common_content.get("load_speakers_btn_label"))
 
         with gr.Column() as ui_container:
             with gr.Group(visible=False) as speaker_select_group:
@@ -114,7 +114,7 @@ class ForgeMixView(ForgeBaseView):
                     inputs=[speaker_control, speaker_select],
                     outputs=[]
                 ).then(
-                    lambda: [gr.Audio(value=None), gr.Group(visible=False)],
+                    lambda: [gr.Audio(value=None, format="wav"), gr.Group(visible=False)],
                     outputs=[audio_player, speaker_save_group]
                 )
 
@@ -165,7 +165,7 @@ class ForgeMixView(ForgeBaseView):
                     generate_speech_btn.click,
                     speaker_select.change
                 ],
-                fn=lambda: [gr.Audio(value=None), gr.Group(visible=False)],
+                fn=lambda: [gr.Audio(value=None, format="wav"), gr.Group(visible=False)],
                 outputs=[audio_player, speaker_save_group]
             )
 
@@ -327,26 +327,45 @@ class ForgeMixView(ForgeBaseView):
         )
 
     def do_inference(self, speech_input_text, language="en"):
-        wav_file = None
-        gpt_cond_latent = self.speaker_embedding.get("gpt_cond_latent", None)
-        speaker_embedding = self.speaker_embedding.get(
-            "speaker_embedding", None)
+        # Mix logic
+        mixed_speaker = {}
 
-        if speaker_embedding is not None and gpt_cond_latent is not None:
+        for speaker_weight in self.speaker_weights:
+            speaker_name = speaker_weight["speaker"]
+            weight = speaker_weight["weight"]
+
+            if weight == 0:
+                continue
+
+            speaker_data = self.speaker_service.get_speaker_data(speaker_name)
+
+            if speaker_data is None:
+                continue
+
+            if "gpt_cond_latent" not in mixed_speaker:
+                mixed_speaker["gpt_cond_latent"] = speaker_data["gpt_cond_latent"] * weight
+                mixed_speaker["speaker_embedding"] = speaker_data["speaker_embedding"] * weight
+            else:
+                mixed_speaker["gpt_cond_latent"] += speaker_data["gpt_cond_latent"] * weight
+                mixed_speaker["speaker_embedding"] += speaker_data["speaker_embedding"] * weight
+
+        self.speaker_embedding = mixed_speaker
+
+        # Inference
+        wav_file = None
+
+        if self.speaker_embedding:
             wav_file = self.model_service.run_inference(
                 lang=language,
                 tts_text=speech_input_text,
-                gpt_cond_latent=gpt_cond_latent,
-                speaker_embedding=speaker_embedding,
-                file_name=self.speaker_weights_to_file_name()
+                gpt_cond_latent=self.speaker_embedding["gpt_cond_latent"],
+                speaker_embedding=self.speaker_embedding["speaker_embedding"]
             )
-        else:
-            print("Speaker embeddings are not set")
 
         return [
             gr.Button(interactive=True),
-            gr.Audio(value=wav_file),
-            gr.Column(elem_classes=[]),
+            gr.Audio(value=wav_file, format="wav"),  # Set format explicitly for Gradio 5
+            gr.Column(elem_classes=[]),  # Reset the UI container to remove loading state
             gr.Group(visible=True)
         ]
 

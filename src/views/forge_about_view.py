@@ -24,8 +24,9 @@ class ForgeAboutView(ForgeBaseView):
 
     def init_ui(self):
         section_description = SectionDescriptionComponent(
-            value=self.section_content['section_description'],)
+            value=self.section_content['section_description'])
 
+        # In Gradio 5, Markdown component has been updated but API remains compatible
         gr.Markdown(value=self.load_readme(),
                     elem_classes=["about-content"])
 

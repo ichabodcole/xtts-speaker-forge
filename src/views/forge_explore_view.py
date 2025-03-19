@@ -28,7 +28,7 @@ class ForgeExploreView(ForgeBaseView):
             value=self.section_content.get('section_description'))
 
         load_speakers_btn = gr.Button(
-            self.common_content.get('load_speakers_btn_label'))
+            value=self.common_content.get('load_speakers_btn_label'))
 
         with gr.Group(visible=False) as speaker_group:
             with gr.Row():
@@ -84,7 +84,7 @@ class ForgeExploreView(ForgeBaseView):
         return gr.Dropdown(
             choices=speakers,
             visible=True,
-            value=speakers[0],
+            value=speakers[0] if speakers else None,
             interactive=True
         )
 
@@ -107,8 +107,8 @@ class ForgeExploreView(ForgeBaseView):
         return [
             gr.Dropdown(interactive=True),
             gr.Button(interactive=True),
-            gr.Audio(value=wav_file)
+            gr.Audio(value=wav_file, format="wav")
         ]
 
     def reset_audio_player(self):
-        return gr.Audio(value=None)
+        return gr.Audio(value=None, format="wav")

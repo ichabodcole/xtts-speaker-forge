@@ -32,7 +32,7 @@ class ForgeEditView(ForgeBaseView):
             value=self.section_content.get('section_description'))
 
         load_speakers_btn = gr.Button(
-            self.common_content.get('load_speakers_btn_label'))
+            value=self.common_content.get('load_speakers_btn_label'))
 
         with gr.Column() as ui_container:
             with gr.Group(visible=False) as speaker_select_group:
@@ -47,14 +47,14 @@ class ForgeEditView(ForgeBaseView):
                     )
 
                     speaker_remove_btn = gr.Button(
-                        self.section_content.get('remove_speaker_btn_label'),
+                        value=self.section_content.get('remove_speaker_btn_label'),
                         visible=False,
                         scale=1
                     )
 
             with gr.Group(visible=False) as speaker_edit_group:
                 speaker_edit_label = gr.Label(
-                    self.section_content.get('edit_speaker_group_label'))
+                    value=self.section_content.get('edit_speaker_group_label'))
 
                 with gr.Row():
                     speaker_name_input = gr.Textbox(label=self.section_content.get(
@@ -120,8 +120,10 @@ class ForgeEditView(ForgeBaseView):
                     interactive=True
                 )
 
-                speaker_save_changes_btn = gr.Button(self.section_content.get(
-                    'save_changes_btn_label'), interactive=False)
+                speaker_save_changes_btn = gr.Button(
+                    value=self.section_content.get('save_changes_btn_label'), 
+                    interactive=False
+                )
 
             notification_message = NotificationComponent()
 
@@ -204,7 +206,7 @@ class ForgeEditView(ForgeBaseView):
     def load_speaker_data(self, selected_speaker=None):
         speakers = self.speaker_service.get_speaker_names()
 
-        speaker = selected_speaker if selected_speaker in speakers else speakers[0]
+        speaker = selected_speaker if selected_speaker in speakers and selected_speaker else (speakers[0] if speakers else None)
 
         return gr.Dropdown(
             choices=speakers,
@@ -213,7 +215,6 @@ class ForgeEditView(ForgeBaseView):
         )
 
     def update_speaker_fields(self, selected_speaker):
-
         speaker_metadata = self.speaker_service.get_speaker_metadata(
             selected_speaker) or {}
 
@@ -248,7 +249,7 @@ class ForgeEditView(ForgeBaseView):
             gr.Dropdown(value=genre),
             # speaker_character_type_input,
             gr.Dropdown(value=character_type),
-            # speaker_description_input
+            # speaker_description_input,
             gr.Textbox(value=description)
         ]
 

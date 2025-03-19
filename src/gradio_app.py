@@ -276,5 +276,6 @@ if __name__ == "__main__":
         share=args.share,
         debug=False,
         server_port=args.port,
-        server_name="0.0.0.0"
+        server_name="0.0.0.0",
+        ssr_mode=False  # Disable SSR mode for Gradio 5 compatibility
     )

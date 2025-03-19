@@ -1,0 +1,57 @@
+# Directory Structure for Speaker_Forge
+
+```
+Speaker_Forge/
+  docs/
+    Speaker_Forge_Overview.md
+    directory_structure.md
+  scripts/
+    dev_watcher.py
+    generate_directory_tree.py
+    generate_tree.sh
+  src/
+    assets/
+      images/
+        speaker_forge_glitter.gif
+    components/
+      notification_component.py
+      section_description_component.py
+      speaker_preview_component.py
+      textbox_submit_component.py
+    constants/
+      common.py
+      ui_text.py
+    services/
+      content_manager_service.py
+      model_manager_service.py
+      speaker_manager_service.py
+    utils/
+      embedding_utils.py
+      utils.py
+    views/
+      forge_about_view.py
+      forge_base_view.py
+      forge_changelog_view.py
+      forge_create_view.py
+      forge_edit_view.py
+      forge_explore_view.py
+      forge_export_view.py
+      forge_import_view.py
+      forge_mix_view.py
+      forge_setup_view.py
+    content.json
+    css.py
+    gradio_app.py
+    types_module.py
+  .gitignore
+  CHANGELOG.md
+  README.md
+  XTTS_SpeakerForge_v1.ipynb
+  directory_structure.md
+  log.out
+  requirements.txt
+  run.sh
+  run_colab.sh
+  run_dev.sh
+  setup.sh
+```

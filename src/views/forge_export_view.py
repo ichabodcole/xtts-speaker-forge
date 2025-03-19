@@ -26,10 +26,10 @@ class ForgeExportView(ForgeBaseView):
             value=self.section_content.get('section_description'))
 
         load_speakers_btn = gr.Button(
-            self.common_content.get('load_speakers_btn_label'))
+            value=self.common_content.get('load_speakers_btn_label'))
 
         with gr.Group(visible=False) as speaker_transfer_group:
-            gr.Label(self.section_content.get('speaker_checkbox_group_label'))
+            gr.Label(value=self.section_content.get('speaker_checkbox_group_label'))
 
             speaker_checkbox_group = gr.CheckboxGroup(
                 label=None,
@@ -40,10 +40,10 @@ class ForgeExportView(ForgeBaseView):
 
             with gr.Row():
                 select_all_btn = gr.Button(
-                    self.section_content.get('select_all_btn_label'))
+                    value=self.section_content.get('select_all_btn_label'))
 
                 deselect_all_btn = gr.Button(
-                    self.section_content.get('deselect_all_btn_label'))
+                    value=self.section_content.get('deselect_all_btn_label'))
 
         export_file_btn = gr.Button(
             value=self.section_content.get('export_file_btn_label'),

@@ -18,7 +18,7 @@ def TextboxSubmitComponent(
                 scale=3
             )
 
-            submit_btn = gr.Button(button_label, scale=1, interactive=False)
+            submit_btn = gr.Button(value=button_label, scale=1, interactive=False)
 
     notification_text = gr.Markdown(
         value=format_notification(

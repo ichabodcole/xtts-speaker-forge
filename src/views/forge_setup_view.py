@@ -88,6 +88,7 @@ class ForgeSetupView(ForgeBaseView):
             result_message = NotificationComponent(
                 label="Result", value=self.section_content.get("model_load_start"))
 
+            # Gradio 5 event handling is similar but tab updating may need adjustments
             load_model_btn.click(
                 lambda: [gr.Button(interactive=False),
                          gr.Markdown(visible=True)],
@@ -114,7 +115,10 @@ class ForgeSetupView(ForgeBaseView):
             )
 
     def validate_paths_and_load_model(self, checkpoint_dir, vocab_file, config_file, speaker_file):
-
+        """
+        Validate file paths and load the model.
+        In Gradio 5, the way Tab interactive state is updated may need adjustments.
+        """
         def response(message, is_ui_enabled):
             return [
                 gr.Button(interactive=is_ui_enabled),

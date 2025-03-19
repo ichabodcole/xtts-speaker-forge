@@ -30,7 +30,7 @@ class ForgeImportView(ForgeBaseView):
 
         with gr.Column() as ui_container:
             load_speakers_btn = gr.Button(
-                self.common_content.get('load_speakers_btn_label'))
+                value=self.common_content.get('load_speakers_btn_label'))
 
             with gr.Row(visible=False) as speaker_lists_group:
                 with gr.Group():
@@ -50,11 +50,11 @@ class ForgeImportView(ForgeBaseView):
 
                     with gr.Group(visible=False) as speaker_from_actions_group:
                         with gr.Row():
-                            select_all_btn = gr.Button("Select All")
-                            deselect_all_btn = gr.Button("Deselect All")
+                            select_all_btn = gr.Button(value="Select All")
+                            deselect_all_btn = gr.Button(value="Deselect All")
 
                         load_new_speaker_file_btn = gr.Button(
-                            "Load New Speaker File")
+                            value="Load New Speaker File")
 
                     file_uploader = gr.File(
                         label="Import Speaker File",
@@ -62,7 +62,7 @@ class ForgeImportView(ForgeBaseView):
                         interactive=True)
 
             import_speakers_btn = gr.Button(
-                "Import Speakers",
+                value="Import Speakers",
                 visible=False,
                 interactive=False
             )

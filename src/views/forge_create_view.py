@@ -76,7 +76,7 @@ class ForgeCreateView(ForgeBaseView):
             file_uploader.change(
                 lambda file_list: [
                     gr.Button(interactive=(not is_empty_file_list(file_list))),
-                    gr.Audio(value=None)
+                    gr.Audio(value=None, format="wav")
                 ],
                 inputs=[file_uploader],
                 outputs=[
@@ -151,7 +151,7 @@ class ForgeCreateView(ForgeBaseView):
         return [
             gr.Group(visible=True),
             gr.Group(visible=False),
-            gr.Audio(value=None),
+            gr.Audio(value=None, format="wav"),
             gr.Markdown(visible=False)
         ]
 
@@ -170,7 +170,7 @@ class ForgeCreateView(ForgeBaseView):
 
         return [
             gr.Button(interactive=True),
-            gr.Audio(value=wav_file),
+            gr.Audio(value=wav_file, format="wav"),
             gr.Group(visible=True)
         ]
 
