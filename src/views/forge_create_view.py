@@ -200,3 +200,15 @@ class ForgeCreateView(ForgeBaseView):
                 f"Speaker \"{speaker_name}\" added successfully!"),
             visible=True
         )
+
+    def reload_speaker_data(self, *args):
+        """
+        Override the base reload method to update the UI with fresh speaker data
+        Accepts *args to handle any arguments Gradio might pass
+        """
+        # First reload the data using the parent method
+        super().reload_speaker_data()
+        
+        # For Create view, we don't need to update any UI components directly
+        # since it doesn't display existing speakers
+        return None

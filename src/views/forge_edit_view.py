@@ -15,6 +15,7 @@ class ForgeEditView(ForgeBaseView):
     is_file_paths_set = False
     section_content: dict
     common_content: dict
+    speaker_select = None
 
     def __init__(
         self,
@@ -31,24 +32,22 @@ class ForgeEditView(ForgeBaseView):
         section_description = SectionDescriptionComponent(
             value=self.section_content.get('section_description'))
 
-        load_speakers_btn = gr.Button(
-            value=self.common_content.get('load_speakers_btn_label'))
-
         with gr.Column() as ui_container:
-            with gr.Group(visible=False) as speaker_select_group:
+            with gr.Group(visible=True) as speaker_select_group:
                 with gr.Row():
-                    speaker_select = gr.Dropdown(
+                    self.speaker_select = gr.Dropdown(
                         label=self.common_content.get(
                             'select_speaker_dropdown_label'
                         ),
-                        choices=[],
+                        choices=[],  # Start with empty list, will be populated on tab select
+                        value=None,  # No default value initially
                         interactive=True,
                         scale=3
                     )
 
                     speaker_remove_btn = gr.Button(
                         value=self.section_content.get('remove_speaker_btn_label'),
-                        visible=False,
+                        visible=True,
                         scale=1
                     )
 
@@ -127,24 +126,9 @@ class ForgeEditView(ForgeBaseView):
 
             notification_message = NotificationComponent()
 
-        load_speakers_btn.click(
-            self.load_speaker_data,
-            inputs=[speaker_select],
-            outputs=speaker_select
-        ).then(
-            lambda: [
-                gr.Group(visible=True),
-                gr.Button(visible=True)
-            ],
-            outputs=[
-                speaker_select_group,
-                speaker_remove_btn
-            ]
-        )
-
-        speaker_select.change(
+        self.speaker_select.change(
             self.update_speaker_fields,
-            inputs=[speaker_select],
+            inputs=[self.speaker_select],
             outputs=[
                 speaker_edit_group,
                 speaker_edit_label,
@@ -174,7 +158,7 @@ class ForgeEditView(ForgeBaseView):
         speaker_save_changes_btn.click(
             self.save_speaker_changes,
             inputs=[
-                speaker_select,
+                self.speaker_select,
                 speaker_name_input,
                 speaker_gender_input,
                 speaker_age_range_input,
@@ -187,31 +171,19 @@ class ForgeEditView(ForgeBaseView):
             ],
             outputs=notification_message
         ).then(
-            self.load_speaker_data,
-            inputs=[speaker_select],
-            outputs=speaker_select
+            self.reload_speaker_data,
+            inputs=[self.speaker_select],
+            outputs=self.speaker_select
         )
 
         speaker_remove_btn.click(
             self.remove_speaker,
-            inputs=[speaker_select],
+            inputs=[self.speaker_select],
             outputs=notification_message
         ).then(
-            self.load_speaker_data,
-            inputs=[speaker_select],
-            outputs=speaker_select
-        )
-
-    # Event Handlers
-    def load_speaker_data(self, selected_speaker=None):
-        speakers = self.speaker_service.get_speaker_names()
-
-        speaker = selected_speaker if selected_speaker in speakers and selected_speaker else (speakers[0] if speakers else None)
-
-        return gr.Dropdown(
-            choices=speakers,
-            visible=True,
-            value=speaker
+            self.reload_speaker_data,
+            inputs=[self.speaker_select],
+            outputs=self.speaker_select
         )
 
     def update_speaker_fields(self, selected_speaker):
@@ -229,35 +201,27 @@ class ForgeEditView(ForgeBaseView):
         character_type = speaker_metadata.get('character_type', [])
 
         return [
-            # speaker_edit_group,
             gr.Group(visible=True),
-            # speaker_edit_label,
             gr.Label(value=f"Attributes for {selected_speaker}"),
-            # speaker_name_input,
             gr.Textbox(value=name),
-            # speaker_gender_input,
             gr.Dropdown(value=gender),
-            # speaker_age_range_input,
             gr.Dropdown(value=age_range),
-            # speaker_accent_input,
             gr.Dropdown(value=accent),
-            # speaker_tonal_quality_input,
             gr.Dropdown(value=tonal_quality),
-            # speaker_style_input,
             gr.Dropdown(value=style),
-            # speaker_genre_input,
             gr.Dropdown(value=genre),
-            # speaker_character_type_input,
             gr.Dropdown(value=character_type),
-            # speaker_description_input,
             gr.Textbox(value=description)
         ]
 
     def remove_speaker(self, selected_speaker):
-        self.speaker_service.remove_speaker(selected_speaker)
-        self.speaker_service.save_speaker_file()
+        if selected_speaker:
+            self.speaker_service.remove_speaker(selected_speaker)
+            self.speaker_service.save_speaker_file()
 
-        return gr.Markdown(value=f"Speaker {selected_speaker} Removed!", visible=True)
+            return gr.Markdown(visible=True, value=f"Speaker {selected_speaker} Removed!")
+
+        return gr.Markdown(visible=False)
 
     def save_speaker_changes(
         self,
@@ -293,3 +257,70 @@ class ForgeEditView(ForgeBaseView):
         self.speaker_service.save_speaker_file()
 
         return gr.Markdown(value=f"Speaker {selected_speaker} Attributes Update!", visible=True)
+
+    def handle_speaker_change(self, speaker):
+        if speaker:
+            speaker_metadata = self.speaker_service.get_speaker_metadata(
+                speaker) or {}
+            
+            gender = speaker_metadata.get('gender', None)
+            accent = speaker_metadata.get('accent', None)
+            age = speaker_metadata.get('age', None)
+            tonal = speaker_metadata.get('tonal', None)
+            style = speaker_metadata.get('style', None)
+            genre = speaker_metadata.get('genre', None)
+            character_type = speaker_metadata.get('character_type', None)
+            
+            return [
+                gr.Button(visible=True),
+                gr.Label(value=f"Edit {speaker}"),
+                gr.Textbox(value=speaker),
+                gr.Dropdown(value=gender),
+                gr.Dropdown(value=accent),
+                gr.Dropdown(value=age),
+                gr.Dropdown(value=tonal),
+                gr.Dropdown(value=style),
+                gr.Dropdown(value=genre),
+                gr.Dropdown(value=character_type),
+                gr.Group(visible=True)
+            ]
+        
+        return [
+            gr.Button(visible=False),
+            gr.Label(value=""),
+            gr.Textbox(value=""),
+            gr.Dropdown(value=None),
+            gr.Dropdown(value=None),
+            gr.Dropdown(value=None),
+            gr.Dropdown(value=None),
+            gr.Dropdown(value=None),
+            gr.Dropdown(value=None),
+            gr.Dropdown(value=None),
+            gr.Group(visible=False)
+        ]
+        
+    def reload_speaker_data(self, *args):
+        """
+        Override the base reload method to automatically refresh speaker data
+        Accepts *args to handle any arguments Gradio might pass
+        """
+        # First reload the data using the parent method
+        super().reload_speaker_data()
+        
+        # Always update the dropdown with fresh data
+        if self.speaker_select is not None:
+            # Get fresh speaker names
+            speaker_names = self.speaker_service.get_speaker_names()
+            
+            # Get current value or default to first speaker
+            current_value = self.speaker_select.value
+            if current_value not in speaker_names:
+                current_value = speaker_names[0] if speaker_names else None
+                
+            # Update the dropdown component
+            return gr.update(
+                choices=speaker_names,
+                value=current_value
+            )
+        
+        return None

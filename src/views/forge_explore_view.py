@@ -11,6 +11,7 @@ class ForgeExploreView(ForgeBaseView):
     speaker_data = None
     section_content: dict
     common_content: dict
+    speaker_select = None
 
     def __init__(
         self,
@@ -27,16 +28,16 @@ class ForgeExploreView(ForgeBaseView):
         section_description = SectionDescriptionComponent(
             value=self.section_content.get('section_description'))
 
-        load_speakers_btn = gr.Button(
-            value=self.common_content.get('load_speakers_btn_label'))
-
-        with gr.Group(visible=False) as speaker_group:
+        # Make speaker group visible by default
+        with gr.Group(visible=True) as speaker_group:
             with gr.Row():
-                speaker_select = gr.Dropdown(
+                self.speaker_select = gr.Dropdown(
                     label=self.common_content.get(
                         'select_speaker_dropdown_label'),
-                    choices=[],
-                    scale=3
+                    choices=[],  # Start with empty list, will be populated on tab select
+                    value=None,  # No default value initially
+                    scale=3,
+                    interactive=True
                 )
 
         (audio_preview_group,
@@ -45,47 +46,31 @@ class ForgeExploreView(ForgeBaseView):
          language_select,
          generate_speech_btn) = SpeechPreviewComponent(self.content_service.get_common_content())
 
+        # Make the audio controls visible by default
+        audio_preview_group.visible = True
+
         # Setup the button click events
-        speaker_select.change(
+        self.speaker_select.change(
             self.reset_audio_player,
             inputs=[],
             outputs=[audio_player]
         )
 
-        load_speakers_btn.click(
-            self.load_speaker_data,
-            inputs=[],
-            outputs=speaker_select
-        ).then(
-            lambda: [gr.Group(visible=True), gr.Group(visible=True)],
-            outputs=[speaker_group, audio_preview_group]
-        )
-
         generate_speech_btn.click(
             lambda: gr.Dropdown(interactive=False),
-            outputs=speaker_select
+            outputs=self.speaker_select
         ).then(
             self.do_inference,
             inputs=[
-                speaker_select,
+                self.speaker_select,
                 speech_input_textbox,
                 language_select
             ],
             outputs=[
-                speaker_select,
+                self.speaker_select,
                 generate_speech_btn,
                 audio_player
             ]
-        )
-
-    def load_speaker_data(self):
-        speakers = self.speaker_service.get_speaker_names()
-
-        return gr.Dropdown(
-            choices=speakers,
-            visible=True,
-            value=speakers[0] if speakers else None,
-            interactive=True
         )
 
     def do_inference(self, speaker, speech_text, language="en"):
@@ -112,3 +97,24 @@ class ForgeExploreView(ForgeBaseView):
 
     def reset_audio_player(self):
         return gr.Audio(value=None, format="wav")
+        
+    def reload_speaker_data(self, *args):
+        """
+        Override the base reload method to automatically refresh speaker list
+        Accepts *args to handle any arguments Gradio might pass
+        """
+        # First reload the data using the parent method
+        super().reload_speaker_data()
+        
+        # Always update the dropdown with the latest speaker names
+        # regardless of whether the parent reload succeeded
+        if self.speaker_select is not None:
+            speaker_names = self.speaker_service.get_speaker_names()
+            default_speaker = speaker_names[0] if speaker_names else None
+            
+            return gr.update(
+                choices=speaker_names,
+                value=default_speaker
+            )
+        
+        return None

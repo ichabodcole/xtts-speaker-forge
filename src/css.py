@@ -63,8 +63,28 @@ def app_css():
     import_css = """
         .import-speaker-to-list {
             padding: 0px 10px 10px;
-            max-height: 800px;
+            max-height: 600px;
             overflow-y: auto;
+        }
+        
+        /* Style the current speakers list to match the grid layout */
+        .import-speaker-to-list ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+        }
+        
+        .import-speaker-to-list li {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            padding: 8px;
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     """
 
@@ -81,5 +101,37 @@ def app_css():
             font-size: 1.1em;
         }
     """
+    
+    # Add the grid layout CSS for speaker checkboxes
+    speaker_grid_css = """
+        /* Grid layout for speaker checkboxes */
+        .speaker-checkbox-grid .wrap {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+        }
 
-    return f"{common_css}\n{import_css}\n{changelog_css}\n{about_css}"
+        .speaker-checkbox-grid .wrap label {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            padding: 8px;
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            transition: background-color 0.2s ease;
+        }
+
+        .speaker-checkbox-grid .wrap label:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Ensure consistent checkbox size */
+        .speaker-checkbox-grid .wrap input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+        }
+    """
+
+    return f"{common_css}\n{import_css}\n{changelog_css}\n{about_css}\n{speaker_grid_css}"

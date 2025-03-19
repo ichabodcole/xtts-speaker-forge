@@ -9,6 +9,7 @@ This directory contains documentation for the Speaker Forge application.
 - [Migration Documents](migration/) - Documentation related to version migrations
   - [Gradio 5 Migration](migration/GRADIO5_MIGRATION.md) - Details of the migration from Gradio 4.19.2 to Gradio 5.22.0
   - [Gradio 5 Migration Guide](migration/GRADIO5_README.md) - Testing and rollback instructions for the Gradio 5 migration
+  - [Automatic Data Reloading](migration/AUTO_RELOAD_IMPLEMENTATION.md) - How we implemented automatic speaker data reloading with Gradio 5
 
 ## Application Version
 

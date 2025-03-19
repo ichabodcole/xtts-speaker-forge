@@ -27,6 +27,7 @@ class ForgeMixView(ForgeBaseView):
     is_spicy = False
     section_content: dict
     common_content: dict
+    speaker_select = None
 
     def __init__(
         self,
@@ -40,20 +41,17 @@ class ForgeMixView(ForgeBaseView):
         self.common_content = self.content_service.get_common_content()
 
     def init_ui(self):
-
         section_description = SectionDescriptionComponent(
             value=self.section_content.get("section_description"))
 
-        load_speakers_btn = gr.Button(
-            value=self.common_content.get("load_speakers_btn_label"))
-
         with gr.Column() as ui_container:
-            with gr.Group(visible=False) as speaker_select_group:
+            # Make speaker group visible by default
+            with gr.Group(visible=True) as speaker_select_group:
                 with gr.Row():
-                    speaker_select = gr.Dropdown(
+                    self.speaker_select = gr.Dropdown(
                         label=self.common_content.get(
                             "select_speakers_dropdown_label"),
-                        choices=[],
+                        choices=[],  # Start with empty list, will be populated on tab select
                         max_choices=MAX_SPEAKER_CONTROL_COUNT,
                         scale=3,
                         multiselect=True,
@@ -111,29 +109,20 @@ class ForgeMixView(ForgeBaseView):
             for speaker_control in self.speaker_control_list:
                 speaker_control.input(
                     self.handle_speaker_slider_change,
-                    inputs=[speaker_control, speaker_select],
+                    inputs=[speaker_control, self.speaker_select],
                     outputs=[]
                 ).then(
                     lambda: [gr.Audio(value=None, format="wav"), gr.Group(visible=False)],
                     outputs=[audio_player, speaker_save_group]
                 )
 
-            load_speakers_btn.click(
-                self.handle_load_speaker_click,
-                inputs=[],
-                outputs=speaker_select
-            ).then(
-                lambda: gr.Group(visible=True),
-                outputs=speaker_select_group
-            )
-
-            speaker_select.change(
+            self.speaker_select.change(
                 self.update_speaker_controls,
-                inputs=[speaker_select],
+                inputs=[self.speaker_select],
                 outputs=self.speaker_control_list
             ).then(
                 self.handle_speaker_select_change,
-                inputs=[speaker_select],
+                inputs=[self.speaker_select],
                 outputs=[
                     speaker_control_group,
                     audio_preview_group
@@ -143,18 +132,18 @@ class ForgeMixView(ForgeBaseView):
             feeling_spicy_btn.click(
                 self.handle_spicy_click,
                 inputs=[],
-                outputs=speaker_select
+                outputs=self.speaker_select
             )
 
             randomize_speaker_weights_btn.click(
                 self.handle_randomize_speaker_weights_click,
-                inputs=[speaker_select],
+                inputs=[self.speaker_select],
                 outputs=self.speaker_control_list
             )
 
             reset_speaker_weights_btn.click(
                 self.handle_reset_speaker_weights_click,
-                inputs=[speaker_select],
+                inputs=[self.speaker_select],
                 outputs=self.speaker_control_list
             )
 
@@ -163,7 +152,7 @@ class ForgeMixView(ForgeBaseView):
                     randomize_speaker_weights_btn.click,
                     reset_speaker_weights_btn.click,
                     generate_speech_btn.click,
-                    speaker_select.change
+                    self.speaker_select.change
                 ],
                 fn=lambda: [gr.Audio(value=None, format="wav"), gr.Group(visible=False)],
                 outputs=[audio_player, speaker_save_group]
@@ -176,7 +165,7 @@ class ForgeMixView(ForgeBaseView):
                 outputs=ui_container
             ).then(
                 self.disable_control_list,
-                inputs=[speaker_select],
+                inputs=[self.speaker_select],
                 outputs=self.speaker_control_list
             ).then(
                 self.do_inference,
@@ -189,7 +178,7 @@ class ForgeMixView(ForgeBaseView):
                 ]
             ).then(
                 self.enable_control_list,
-                inputs=[speaker_select],
+                inputs=[self.speaker_select],
                 outputs=self.speaker_control_list
             )
 
@@ -198,8 +187,8 @@ class ForgeMixView(ForgeBaseView):
                 inputs=[speaker_name_textbox],
                 outputs=save_notification_text
             ).then(
-                self.handle_load_speaker_click,
-                outputs=speaker_select
+                self.reload_speaker_data,
+                outputs=self.speaker_select
             )
 
     # Helpers
@@ -232,14 +221,6 @@ class ForgeMixView(ForgeBaseView):
         self.is_spicy = False
 
         return next_sliders
-
-    def handle_load_speaker_click(self):
-        self.speaker_name_list = self.speaker_service.get_speaker_names()
-
-        return gr.Dropdown(
-            choices=self.speaker_name_list,
-            visible=True
-        )
 
     def handle_speaker_select_change(self, selected_speakers):
         is_valid_count = len(selected_speakers) > 1
@@ -445,3 +426,22 @@ class ForgeMixView(ForgeBaseView):
             next_slider_list.append(slider)
 
         return next_slider_list
+
+    def reload_speaker_data(self, *args):
+        """
+        Override the base reload method to automatically refresh speaker list
+        Accepts *args to handle any arguments Gradio might pass
+        """
+        # First reload the data using the parent method
+        super().reload_speaker_data()
+        
+        # Always update the speaker name list with fresh data
+        self.speaker_name_list = self.speaker_service.get_speaker_names()
+        
+        # Update the dropdown with the latest speaker names if it exists
+        if hasattr(self, 'speaker_select') and self.speaker_select is not None:
+            return gr.update(
+                choices=self.speaker_name_list
+            )
+        
+        return None

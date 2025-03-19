@@ -37,7 +37,8 @@ class ForgeImportView(ForgeBaseView):
                     speakers_to_list = gr.Markdown(
                         label="To Speaker List",
                         value=None,
-                        elem_classes=["import-speaker-to-list"]
+                        elem_classes=["import-speaker-to-list"],
+                        sanitize_html=False
                     )
 
                 with gr.Group():
@@ -45,7 +46,8 @@ class ForgeImportView(ForgeBaseView):
                         label="From Speaker List",
                         info="Speakers will be imported from this speaker list.",
                         interactive=True,
-                        visible=False
+                        visible=False,
+                        elem_classes=["speaker-checkbox-grid"]
                     )
 
                     with gr.Group(visible=False) as speaker_from_actions_group:
@@ -143,19 +145,24 @@ class ForgeImportView(ForgeBaseView):
             return gr.CheckboxGroup(
                 choices=speaker_names,
                 value=speaker_names,
-                visible=True
+                visible=True,
+                elem_classes=["speaker-checkbox-grid"]
             )
 
         return gr.CheckboxGroup()
 
     def load_speaker_data(self):
-        speaker_text = "### Current Speakers\n\n"
-
+        # Get the current speaker names
         self.to_speakers = self.speaker_service.get_speaker_names()
-
+        
+        # Create a formatted HTML list with proper structure for CSS styling
+        speaker_text = "### Current Speakers\n\n<ul>"
+        
         for speaker in self.to_speakers:
-            speaker_text += f"  - {speaker}\n"
-
+            speaker_text += f"\n  <li>{speaker}</li>"
+        
+        speaker_text += "\n</ul>"
+        
         return speaker_text
 
     def import_speakers(self, from_selected_speaker: list[str] | None):
@@ -181,3 +188,17 @@ class ForgeImportView(ForgeBaseView):
         self.speaker_service.save_speaker_file()
 
         return self.load_speaker_data()
+
+    def reload_speaker_data(self, *args):
+        """
+        Override the base reload method to update the UI with fresh speaker data
+        Accepts *args to handle any arguments Gradio might pass
+        """
+        # First reload the data using the parent method
+        super().reload_speaker_data()
+        
+        # Reset the to_speakers list to force the user to select
+        # speakers to import again with fresh data
+        self.to_speakers = []
+        
+        return None

@@ -272,6 +272,15 @@ if __name__ == "__main__":
             with gr.Column():
                 about_view.init_ui()
 
+        # Add Gradio 5 tab change events to automatically reload speaker data
+        # These must be inside the Blocks context
+        explore_tab.select(fn=explore_view.reload_speaker_data, outputs=explore_view.speaker_select)
+        create_tab.select(fn=create_view.reload_speaker_data)
+        mix_tab.select(fn=mix_view.reload_speaker_data, outputs=mix_view.speaker_select)
+        edit_tab.select(fn=edit_view.reload_speaker_data, outputs=edit_view.speaker_select)
+        import_tab.select(fn=import_view.reload_speaker_data)
+        export_tab.select(fn=export_view.reload_speaker_data, outputs=export_view.speaker_checkbox_group)
+
     app.launch(
         share=args.share,
         debug=False,

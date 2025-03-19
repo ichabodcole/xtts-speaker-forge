@@ -8,11 +8,29 @@
   - Fixed UI loading state handling in Mix View
   - All views and components are now fully compatible with Gradio 5
 
+## UI Improvements
+
+- **Streamlined User Experience**:
+  - Removed manual "Load Speakers" buttons from all views
+  - Speakers load automatically when switching between tabs
+  - Speaker lists stay synchronized across all views
+  - No more clicking "Load" after making changes in other views
+
+- **Enhanced Speaker List Layout**:
+  - Implemented responsive grid layouts for speaker lists in Export and Import views
+  - Speakers displayed in uniform cards with consistent styling
+  - Improved readability with text truncation and ellipsis
+  - Better organization with visual hierarchy
+  - More efficient space usage with multi-column layout
+
 ## Technical Improvements
 
 - Improved audio playback reliability with explicit format settings
 - Enhanced UI responsiveness with updated component parameters
 - Simplified view implementations according to Gradio 5 best practices
+- Added automatic speaker data reload when switching between tabs
+  - Eliminates the need to manually click "Load Speakers" in each view
+  - Ensures views always display the latest data
 
 # 1.0.0-alpha.6 (2024-03-05)
 
