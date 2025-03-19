@@ -327,39 +327,20 @@ class ForgeMixView(ForgeBaseView):
         )
 
     def do_inference(self, speech_input_text, language="en"):
-        # Mix logic
-        mixed_speaker = {}
-
-        for speaker_weight in self.speaker_weights:
-            speaker_name = speaker_weight["speaker"]
-            weight = speaker_weight["weight"]
-
-            if weight == 0:
-                continue
-
-            speaker_data = self.speaker_service.get_speaker_data(speaker_name)
-
-            if speaker_data is None:
-                continue
-
-            if "gpt_cond_latent" not in mixed_speaker:
-                mixed_speaker["gpt_cond_latent"] = speaker_data["gpt_cond_latent"] * weight
-                mixed_speaker["speaker_embedding"] = speaker_data["speaker_embedding"] * weight
-            else:
-                mixed_speaker["gpt_cond_latent"] += speaker_data["gpt_cond_latent"] * weight
-                mixed_speaker["speaker_embedding"] += speaker_data["speaker_embedding"] * weight
-
-        self.speaker_embedding = mixed_speaker
-
         # Inference
         wav_file = None
 
-        if self.speaker_embedding:
+        gpt_cond_latent = self.speaker_embedding.get("gpt_cond_latent", None)
+        speaker_embedding = self.speaker_embedding.get(
+            "speaker_embedding", None)
+
+        if speaker_embedding is not None and gpt_cond_latent is not None:
             wav_file = self.model_service.run_inference(
                 lang=language,
                 tts_text=speech_input_text,
                 gpt_cond_latent=self.speaker_embedding["gpt_cond_latent"],
-                speaker_embedding=self.speaker_embedding["speaker_embedding"]
+                speaker_embedding=self.speaker_embedding["speaker_embedding"],
+                file_name=self.speaker_weights_to_file_name()
             )
 
         return [
