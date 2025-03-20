@@ -58,6 +58,12 @@ def app_css():
                 opacity: 1.0;
             }
         }
+        
+        /* Sample audio data heading styles */
+        .sample-data-heading {
+            padding: 10px 0 10px 5px;
+            color: rgb(103 232 249);
+        }
     """
 
     import_css = """

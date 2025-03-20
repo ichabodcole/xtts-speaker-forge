@@ -8,6 +8,13 @@
   - Fixed UI loading state handling in Mix View
   - All views and components are now fully compatible with Gradio 5
 
+- **New Speaker Sample Management**:
+  - Added ability to save and load speaker voice samples 
+  - Samples are stored directly in the speaker metadata using compressed MP3 format
+  - Automatically load saved samples when selecting a speaker in Explore view
+  - View and manage saved samples in Edit view
+  - No need to regenerate voices for frequently used speakers
+
 ## UI Improvements
 
 - **Streamlined User Experience**:
@@ -15,6 +22,7 @@
   - Speakers load automatically when switching between tabs
   - Speaker lists stay synchronized across all views
   - No more clicking "Load" after making changes in other views
+  - Added clear separation between speaker attributes and sample data in Edit view
 
 - **Enhanced Speaker List Layout**:
   - Implemented responsive grid layouts for speaker lists in Export and Import views
@@ -31,6 +39,9 @@
 - Added automatic speaker data reload when switching between tabs
   - Eliminates the need to manually click "Load Speakers" in each view
   - Ensures views always display the latest data
+- Implemented efficient audio compression for storing samples
+  - Converts WAV to MP3 for compact storage in speaker files
+  - Automatically decompresses when loading samples
 
 # 1.0.0-alpha.6 (2024-03-05)
 

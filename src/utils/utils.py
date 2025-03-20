@@ -1,6 +1,8 @@
 import os
 import random
 import json
+import re
+
 
 from constants.ui_text import speech_input_defaults
 # Utils functions
@@ -67,3 +69,32 @@ def load_readme_md():
     if os.path.exists(about_location):
         with open(about_location, "r") as f:
             return f.read()
+
+def audio_to_compressed_bytes(audio_path: str) -> bytes:
+    """Convert an audio file to compressed MP3 bytes"""
+    from pydub import AudioSegment
+    import io
+    
+    # Load audio file
+    audio = AudioSegment.from_file(audio_path)
+    
+    # Convert to MP3 with reasonable quality (128kbps)
+    buffer = io.BytesIO()
+    audio.export(buffer, format="mp3", bitrate="128k")
+    buffer.seek(0)
+    
+    return buffer.read()
+
+
+def compressed_bytes_to_audio_file(audio_bytes: bytes) -> str:
+    """Convert compressed audio bytes to a temporary WAV file and return the path"""
+    import tempfile
+    from pydub import AudioSegment
+    import io
+    
+    # Create a temporary file for the extracted audio
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+        # Convert MP3 bytes back to WAV
+        audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format="mp3")
+        audio.export(temp_file.name, format="wav")
+        return temp_file.name

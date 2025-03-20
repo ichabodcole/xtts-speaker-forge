@@ -11,7 +11,12 @@
         "save_speaker_placeholder": "Enter speaker name.",
         "save_speaker_success_msg": "Speaker saved successfully!",
         "save_speaker_failure_msg": "Error: Failed to save speaker!",
-        "language_select_label": "Select Language"
+        "language_select_label": "Select Language",
+        "save_sample_btn_label": "Save Sample",
+        "save_sample_success_msg": "Sample saved successfully!",
+        "save_sample_failure_msg": "Error: No audio sample generated yet!",
+        "sample_loaded_msg": "Loaded saved sample",
+        "sample_removed_msg": "Sample removed successfully!"
     },
     "setup": {
         "section_description": "Ensure the XTTS model paths are correctly setup, and the model can be loaded successfully before proceeding (fingers crossed).",
@@ -55,7 +60,12 @@
         "genre_input_label": "Speaker Genre",
         "character_type_input_label": "Speaker Character Type",
         "description_input_label": "Speaker Description",
-        "description_input_placeholder": "Enter a brief description of the speaker"
+        "description_input_placeholder": "Enter a brief description of the speaker",
+        "sample_audio_data_label": "Sample Audio Data",
+        "sample_text_label": "Sample Text",
+        "sample_language_label": "Sample Language",
+        "sample_audio_label": "Sample Audio",
+        "remove_sample_btn_label": "Remove Sample"
     },
     "import": {
         "section_description": "Import speakers from a separate speaker file into the current list of speakers."

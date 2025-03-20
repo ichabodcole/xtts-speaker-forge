@@ -36,6 +36,11 @@ if ! files_exist; then
   wget -O "$SPEAKERS_XTTS_PATH" "$SPEAKERS_XTTS_URL"
 fi
 
+# Install Python requirements
+echo "Installing Python requirements..."
+pip install -r requirements.txt
+
+
 # Set environment variables
 export CHECKPOINT_DIR="$INSTALL_DIR"
 export CHECKPOINT_PATH="$MODEL_PATH"

@@ -13,9 +13,8 @@ _A Gradio interface for Exploring, Creating, Editing, Mixing, Importing and Expo
 1. Clone the repo `git clone https://github.com/ichabodcole/xtts-speaker-forge.git`
 2. CD into the newly created directory `cd xtts-speaker-forge`
 3. Create virtual python environment via venv, conda, etc (optional, but highly recommended)
-4. Install the packages `pip install -q -r ./requirements.txt`
-5. Run the app `bash run.sh`
-6. Click open the gradio app at localhost:5003
+4. Run the app `bash run.sh`
+5. Click open the gradio app at localhost:5003
 
 ## Run locally (Windows)
 

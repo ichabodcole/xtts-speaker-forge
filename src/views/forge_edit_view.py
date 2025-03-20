@@ -7,7 +7,7 @@ from views.forge_base_view import ForgeBaseView
 from services.model_manager_service import ModelManagerService
 from services.speaker_manager_service import SpeakerManagerService
 from types_module import SpeakerMetadata
-from utils.utils import is_empty_string
+from utils.utils import is_empty_string, format_notification
 
 
 class ForgeEditView(ForgeBaseView):
@@ -51,6 +51,7 @@ class ForgeEditView(ForgeBaseView):
                         scale=1
                     )
 
+            # Main attributes editing group
             with gr.Group(visible=False) as speaker_edit_group:
                 speaker_edit_label = gr.Label(
                     value=self.section_content.get('edit_speaker_group_label'))
@@ -118,11 +119,45 @@ class ForgeEditView(ForgeBaseView):
                     lines=3,
                     interactive=True
                 )
-
+                
+                # Save button for attributes
                 speaker_save_changes_btn = gr.Button(
                     value=self.section_content.get('save_changes_btn_label'), 
                     interactive=False
                 )
+                
+            # Separate group for sample data
+            with gr.Group(visible=False) as sample_info_group:
+                gr.Markdown(
+                    "### " + self.section_content.get('sample_audio_data_label'),
+                    elem_classes=["sample-data-heading"]
+                )
+                
+                with gr.Row():
+                    with gr.Column(scale=3):
+                        sample_text_display = gr.Textbox(
+                            label=self.section_content.get('sample_text_label'),
+                            interactive=False,
+                            lines=2
+                        )
+                        
+                        sample_language_display = gr.Textbox(
+                            label=self.section_content.get('sample_language_label'),
+                            interactive=False
+                        )
+                        
+                    with gr.Column(scale=2):
+                        sample_audio_player = gr.Audio(
+                            label=self.section_content.get('sample_audio_label'),
+                            interactive=False,
+                            format="wav"
+                        )
+                
+                # Separate button for sample management
+                with gr.Row():
+                    clear_sample_btn = gr.Button(
+                        self.section_content.get('remove_sample_btn_label')
+                    )
 
             notification_message = NotificationComponent()
 
@@ -140,7 +175,11 @@ class ForgeEditView(ForgeBaseView):
                 speaker_style_input,
                 speaker_genre_input,
                 speaker_character_type_input,
-                speaker_description_input
+                speaker_description_input,
+                sample_info_group,
+                sample_text_display,
+                sample_language_display,
+                sample_audio_player
             ]
         ).then(
             lambda: gr.Markdown(visible=False),
@@ -185,8 +224,39 @@ class ForgeEditView(ForgeBaseView):
             inputs=[self.speaker_select],
             outputs=self.speaker_select
         )
+        
+        clear_sample_btn.click(
+            self.clear_speaker_sample,
+            inputs=[self.speaker_select],
+            outputs=[
+                notification_message,
+                sample_info_group,
+                sample_text_display,
+                sample_language_display,
+                sample_audio_player
+            ]
+        )
 
     def update_speaker_fields(self, selected_speaker):
+        if not selected_speaker:
+            return [
+                gr.Group(visible=False),  # speaker_edit_group
+                gr.Label(value=""),  # speaker_edit_label
+                "",  # speaker_name_input
+                None,  # speaker_gender_input
+                None,  # speaker_age_range_input
+                None,  # speaker_accent_input
+                [],  # speaker_tonal_quality_input
+                [],  # speaker_style_input
+                [],  # speaker_genre_input
+                [],  # speaker_character_type_input
+                "",  # speaker_description_input
+                gr.Group(visible=False),  # sample_info_group
+                "",  # sample_text_display
+                "",  # sample_language_display
+                None  # sample_audio_player
+            ]
+        
         speaker_metadata = self.speaker_service.get_speaker_metadata(
             selected_speaker) or {}
 
@@ -199,6 +269,15 @@ class ForgeEditView(ForgeBaseView):
         style = speaker_metadata.get('style', [])
         genre = speaker_metadata.get('genre', [])
         character_type = speaker_metadata.get('character_type', [])
+        
+        # Check for sample data
+        sample_data = self.speaker_service.get_speaker_sample(selected_speaker)
+        has_sample = sample_data is not None
+        
+        # Set sample data fields if available
+        sample_text = sample_data["text"] if has_sample else ""
+        sample_language = sample_data["language"] if has_sample else ""
+        sample_audio = sample_data["audio_path"] if has_sample else None
 
         return [
             gr.Group(visible=True),
@@ -211,7 +290,11 @@ class ForgeEditView(ForgeBaseView):
             gr.Dropdown(value=style),
             gr.Dropdown(value=genre),
             gr.Dropdown(value=character_type),
-            gr.Textbox(value=description)
+            gr.Textbox(value=description),
+            gr.Group(visible=has_sample),
+            gr.Textbox(value=sample_text),
+            gr.Textbox(value=sample_language),
+            gr.Audio(value=sample_audio, format="wav")
         ]
 
     def remove_speaker(self, selected_speaker):
@@ -222,6 +305,45 @@ class ForgeEditView(ForgeBaseView):
             return gr.Markdown(visible=True, value=f"Speaker {selected_speaker} Removed!")
 
         return gr.Markdown(visible=False)
+    
+    def clear_speaker_sample(self, selected_speaker):
+        """Remove the sample from the speaker's metadata"""
+        if not selected_speaker:
+            return [
+                gr.Markdown(visible=False),
+                gr.Group(visible=False),
+                gr.Textbox(value=""),
+                gr.Textbox(value=""),
+                gr.Audio(value=None, format="wav")
+            ]
+            
+        # Get current metadata
+        metadata = self.speaker_service.get_speaker_metadata(selected_speaker) or {}
+        
+        # Remove sample-related fields
+        if 'sample_text' in metadata:
+            metadata.pop('sample_text')
+        if 'sample_audio_data' in metadata:
+            metadata.pop('sample_audio_data')
+        if 'sample_language' in metadata:
+            metadata.pop('sample_language')
+            
+        # Update metadata
+        self.speaker_service.set_speaker_metadata(selected_speaker, metadata)
+        self.speaker_service.save_speaker_file()
+        
+        return [
+            gr.Markdown(
+                value=format_notification(
+                    self.common_content.get('sample_removed_msg')
+                ),
+                visible=True
+            ),
+            gr.Group(visible=False),
+            gr.Textbox(value=""),
+            gr.Textbox(value=""),
+            gr.Audio(value=None, format="wav")
+        ]
 
     def save_speaker_changes(
         self,
@@ -239,6 +361,14 @@ class ForgeEditView(ForgeBaseView):
         if speaker_name is None or str(speaker_name).strip() == "":
             return gr.Markdown("Speaker Name is required", visible=True)
 
+        # Get existing metadata to preserve sample data
+        existing_metadata = self.speaker_service.get_speaker_metadata(selected_speaker) or {}
+        
+        # Extract sample data fields if they exist
+        sample_text = existing_metadata.get('sample_text')
+        sample_audio_data = existing_metadata.get('sample_audio_data') 
+        sample_language = existing_metadata.get('sample_language')
+
         speaker_metadata: SpeakerMetadata = {
             "speaker_name": speaker_name,
             "gender": speaker_gender,
@@ -250,13 +380,21 @@ class ForgeEditView(ForgeBaseView):
             "character_type": speaker_character_type,
             "description": speaker_description
         }
+        
+        # Add back sample data if it exists
+        if sample_text is not None:
+            speaker_metadata["sample_text"] = sample_text
+        if sample_audio_data is not None:
+            speaker_metadata["sample_audio_data"] = sample_audio_data
+        if sample_language is not None:
+            speaker_metadata["sample_language"] = sample_language
 
         self.speaker_service.update_speaker_meta(
             selected_speaker, speaker_metadata)
 
         self.speaker_service.save_speaker_file()
 
-        return gr.Markdown(value=f"Speaker {selected_speaker} Attributes Update!", visible=True)
+        return gr.Markdown(value=f"Speaker {selected_speaker} Attributes Updated!", visible=True)
 
     def handle_speaker_change(self, speaker):
         if speaker:

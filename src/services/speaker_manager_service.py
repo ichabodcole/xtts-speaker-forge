@@ -5,7 +5,7 @@ from typing import Dict
 import torch
 from constants.common import SPEAKER_METADATA_KEY
 from types_module import SpeakerData, SpeakerEmbeddingList, SpeakerFileData, SpeakerMetadata, SpeakerWeightsList
-from utils.utils import is_valid_file
+from utils.utils import is_valid_file, audio_to_compressed_bytes, compressed_bytes_to_audio_file
 from utils.embedding_utils import CombineMethod, average_latents_and_embeddings
 
 
@@ -92,6 +92,66 @@ class SpeakerManagerService:
     def set_speaker_metadata(self, speaker_name: str, metadata: SpeakerMetadata):
         self.speakers_file_data.setdefault(SPEAKER_METADATA_KEY, {})[
             speaker_name] = metadata
+        
+    def save_speaker_sample(self, speaker_name: str, sample_text: str, audio_path: str, language: str):
+        """Save a speaker sample to the speaker's metadata"""
+        if speaker_name not in self.speakers_file_data:
+            print(f"Speaker {speaker_name} does not exist")
+            return False
+        
+        # Get current metadata or create new
+        metadata = self.get_speaker_metadata(speaker_name) or {}
+        
+        # Convert audio to compressed bytes
+        try:
+            audio_bytes = audio_to_compressed_bytes(audio_path)
+            
+            # Update metadata with sample info
+            metadata["sample_text"] = sample_text
+            metadata["sample_audio_data"] = audio_bytes
+            metadata["sample_language"] = language
+            
+            # Save updated metadata
+            self.set_speaker_metadata(speaker_name, metadata)
+            return True
+        except Exception as e:
+            print(f"Error saving speaker sample: {e}")
+            return False
+
+    def get_speaker_sample(self, speaker_name: str):
+        """Get a speaker's sample data if available"""
+        metadata = self.get_speaker_metadata(speaker_name)
+        
+        if not metadata:
+            return None
+            
+        sample_text = metadata.get("sample_text")
+        sample_audio_data = metadata.get("sample_audio_data")
+        sample_language = metadata.get("sample_language", "en")
+        
+        if not sample_text or not sample_audio_data:
+            return None
+            
+        # Convert compressed bytes back to temporary audio file
+        try:
+            # Handle both bytes and string paths
+            if isinstance(sample_audio_data, bytes):
+                audio_path = compressed_bytes_to_audio_file(sample_audio_data)
+            elif isinstance(sample_audio_data, str) and os.path.exists(sample_audio_data):
+                audio_path = sample_audio_data
+            else:
+                print(f"Invalid sample audio data for speaker {speaker_name}")
+                return None
+                
+            return {
+                "text": sample_text,
+                "audio_path": audio_path,
+                "language": sample_language
+            }
+        except Exception as e:
+            print(f"Error loading speaker sample: {e}")
+            return None
+
 
     def get_metadata(self) -> Dict[str, SpeakerMetadata]:
         return self.speakers_file_data.get(SPEAKER_METADATA_KEY, {})

@@ -14,6 +14,10 @@ class SpeakerMetadata(TypedDict):
     genre: List[str] | None
     character_type: List[str] | None
     description: str | None
+    sample_text: str | None
+    sample_audio_data: Union[bytes, str] | None
+    sample_language: str | None
+
 
 
 class SpeakerWeight(TypedDict):
